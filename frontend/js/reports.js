@@ -129,6 +129,6 @@ const Reports = {
 
 // Export button on reports page
 document.getElementById('exportReportBtn').addEventListener('click', () => {
-  window.location.href = Api.exportUrl();
-  Toast.info('Đang tải xuống file Excel...');
+  window.open(`/api/export?type=reports&t=${Date.now()}`, '_blank');
+  Toast.info('Đang tải xuống file báo cáo tổng hợp...');
 });
