@@ -295,7 +295,7 @@ document.getElementById('cancelImportModal').addEventListener('click', () => clo
 document.getElementById('closeImportModal').addEventListener('click', () => closeModal('importModal'));
 
 document.getElementById('downloadTemplateBtn').addEventListener('click', () => {
-  window.location.href = 'http://localhost:3001/api/template';
+  window.location.href = '/api/template';
 });
 
 document.getElementById('confirmImport').addEventListener('click', async () => {
