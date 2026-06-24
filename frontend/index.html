@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FLC Attendance System | English Club Dashboard</title>
+  <meta name="description" content="Hệ thống quản lý điểm danh và thành viên Câu lạc bộ Tiếng Anh FLC - VKU" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon" style="border-radius: 50%; overflow: hidden; width: 40px; height: 40px; flex-shrink: 0;">
+          <img src="assets/logo.jpg" alt="FLC Logo" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">VKU FLC Management System</span>
+          <span class="logo-subtitle">VKU Foreign Language Club</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Tổng quan</div>
+      <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+
+      <div class="nav-section-label">Quản lý</div>
+      <a href="#" class="nav-item" data-page="attendance" id="nav-attendance">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        <span>Điểm danh</span>
+      </a>
+      <a href="#" class="nav-item" data-page="members" id="nav-members">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Thành viên</span>
+      </a>
+      <a href="#" class="nav-item" data-page="sessions" id="nav-sessions">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </span>
+        <span>Buổi học</span>
+      </a>
+
+      <div class="nav-section-label">Báo cáo</div>
+      <a href="#" class="nav-item" data-page="reports" id="nav-reports">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </span>
+        <span>Báo cáo</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-version">v1.0.0 · FLC 2025</div>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ──────────────────────────────────────────────────── -->
+  <div class="main-wrapper">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="exportBtn" title="Xuất Excel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Xuất Excel</span>
+        </button>
+        <div class="topbar-badge">
+          <div class="status-dot"></div>
+          <span id="currentDate"></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Container -->
+    <main class="page-container">
+
+      <!-- ══ DASHBOARD PAGE ════════════════════════════════════════════ -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Tổng quan hệ thống điểm danh CLB Tiếng Anh FLC</p>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card stat-card--purple">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value" id="stat-members">—</div>
+              <div class="stat-label">Tổng thành viên</div>
+            </div>
+            <div class="stat-trend up">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+          </div>
+
+          <div class="stat-card stat-card--blue">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value" id="stat-sessions">—</div>
+              <div class="stat-label">Buổi học</div>
+            </div>
+          </div>
+
+          <div class="stat-card stat-card--green">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value" id="stat-rate">—</div>
+              <div class="stat-label">Tỉ lệ chuyên cần</div>
+            </div>
+          </div>
+
+          <div class="stat-card stat-card--orange">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value" id="stat-present">—</div>
+              <div class="stat-label">Lượt có mặt</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="dashboard-grid" style="grid-template-columns: 2fr 1fr 1fr;">
+          <!-- Attendance by session chart -->
+          <div class="card chart-card">
+            <div class="card-header">
+              <h3 class="card-title">Điểm danh theo buổi học</h3>
+            </div>
+            <div class="chart-container" id="sessionChart">
+              <div class="chart-loading">Đang tải dữ liệu...</div>
+            </div>
+          </div>
+
+          <!-- Top attendance -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Thành viên chuyên cần nhất</h3>
+            </div>
+            <div class="top-list" id="topAttendanceList">
+              <div class="loading-placeholder">Đang tải...</div>
+            </div>
+          </div>
+
+          <!-- Warning attendance -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" style="color: var(--red-light)">Cảnh báo vắng nhiều</h3>
+            </div>
+            <div class="top-list" id="warningAttendanceList">
+              <div class="loading-placeholder">Đang tải...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Member attendance table -->
+        <div class="card mt-4">
+          <div class="card-header">
+            <h3 class="card-title">Tổng hợp điểm danh thành viên</h3>
+            <span class="badge badge--gray" id="memberCount">0 thành viên</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="memberSummaryTable">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Họ và Tên</th>
+                  <th>Có mặt</th>
+                  <th>Vắng</th>
+                  <th>Tổng buổi</th>
+                  <th>Tỉ lệ</th>
+                </tr>
+              </thead>
+              <tbody id="memberSummaryBody">
+                <tr><td colspan="6" class="empty-state">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ ATTENDANCE PAGE ══════════════════════════════════════════ -->
+      <section class="page" id="page-attendance">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Điểm danh</h1>
+            <p class="page-subtitle">Ghi nhận điểm danh cho từng buổi học</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" id="openAttendanceModal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Điểm danh mới
+            </button>
+          </div>
+        </div>
+
+        <!-- Session Selector -->
+        <div class="card session-selector-card">
+          <div class="session-selector">
+            <label class="form-label">Chọn buổi học:</label>
+            <select class="form-select" id="attendanceSessionSelect">
+              <option value="">-- Chọn buổi học --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="card" id="attendanceTableCard" style="display:none">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title" id="attendanceSessionName">—</h3>
+              <p class="card-subtitle" id="attendanceSessionDate"></p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-ghost btn-sm" id="markAllPresent">✓ Tất cả có mặt</button>
+              <button class="btn btn-ghost btn-sm" id="markAllAbsent">✗ Tất cả vắng</button>
+              <button class="btn btn-primary btn-sm" id="saveAttendance">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Lưu điểm danh
+              </button>
+            </div>
+          </div>
+
+          <!-- Attendance stats bar -->
+          <div class="attendance-stats-bar" id="attendanceStatsBar">
+            <div class="att-stat">
+              <span class="att-stat-dot present"></span>
+              <span>Có mặt: <strong id="countPresent">0</strong></span>
+            </div>
+            <div class="att-stat">
+              <span class="att-stat-dot absent"></span>
+              <span>Vắng: <strong id="countAbsent">0</strong></span>
+            </div>
+            <div class="att-stat">
+              <span class="att-stat-dot not-recorded"></span>
+              <span>Chưa ghi: <strong id="countNotRecorded">0</strong></span>
+            </div>
+            <div class="att-progress-bar">
+              <div class="att-progress-fill" id="attProgressFill" style="width:0%"></div>
+            </div>
+            <span class="att-rate" id="attRate">0%</span>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table attendance-table">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Họ và Tên</th>
+                  <th>Trạng thái</th>
+                  <th>Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Placeholder when no session selected -->
+        <div class="empty-page-state" id="attendancePlaceholder">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </div>
+          <h3>Chọn buổi học để bắt đầu điểm danh</h3>
+          <p>Hoặc tạo buổi học mới trong mục Buổi học</p>
+        </div>
+      </section>
+
+      <!-- ══ MEMBERS PAGE ════════════════════════════════════════════ -->
+      <section class="page" id="page-members">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Thành viên</h1>
+            <p class="page-subtitle">Quản lý danh sách thành viên CLB</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-danger" id="deleteAllMembersBtn" title="Xóa toàn bộ thành viên">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              Xóa tất cả
+            </button>
+            <button class="btn btn-outline" id="importMembersBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Nhập Excel
+            </button>
+            <button class="btn btn-primary" id="addMemberBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Thêm thành viên
+            </button>
+          </div>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="filter-bar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Tìm kiếm thành viên..." id="memberSearch" class="search-input" />
+          </div>
+          <select class="form-select filter-select" id="memberRoleFilter">
+            <option value="">Tất cả vai trò</option>
+            <option value="Chủ nhiệm">Chủ nhiệm</option>
+            <option value="Phó Chủ nhiệm">Phó Chủ nhiệm</option>
+            <option value="Ban Chuyên môn">Ban Chuyên môn</option>
+            <option value="Ban Truyền thông - Đối ngoại">Ban Truyền thông - Đối ngoại</option>
+            <option value="Ban Sự kiện">Ban Sự kiện</option>
+            <option value="Thành viên">Thành viên</option>
+          </select>
+        </div>
+
+        <!-- Members Grid -->
+        <div class="members-grid" id="membersGrid">
+          <div class="loading-placeholder">Đang tải danh sách thành viên...</div>
+        </div>
+      </section>
+
+      <!-- ══ SESSIONS PAGE ════════════════════════════════════════════ -->
+      <section class="page" id="page-sessions">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Buổi học</h1>
+            <p class="page-subtitle">Quản lý lịch buổi học của CLB</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" id="addSessionBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Thêm buổi học
+            </button>
+          </div>
+        </div>
+
+        <div class="sessions-list" id="sessionsList">
+          <div class="loading-placeholder">Đang tải danh sách buổi học...</div>
+        </div>
+      </section>
+
+      <!-- ══ REPORTS PAGE ════════════════════════════════════════════ -->
+      <section class="page" id="page-reports">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Báo cáo</h1>
+            <p class="page-subtitle">Phân tích thống kê điểm danh chi tiết</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" id="exportReportBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Xuất báo cáo
+            </button>
+          </div>
+        </div>
+
+        <div class="reports-grid" id="reportsGrid">
+          <div class="loading-placeholder">Đang tải báo cáo...</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ══ MODALS ═══════════════════════════════════════════════════════ -->
+
+  <!-- Member Modal -->
+  <div class="modal-overlay" id="memberModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="memberModalTitle">Thêm thành viên</h2>
+        <button class="modal-close" id="closeMemberModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="memberForm">
+          <input type="hidden" id="memberFormId" />
+          <div class="form-group">
+            <label class="form-label required">Họ và Tên</label>
+            <input type="text" class="form-input" id="memberFormName" placeholder="Nhập họ và tên..." required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">MSSV</label>
+              <input type="text" class="form-input" id="memberFormMSSV" placeholder="Mã số sinh viên" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lớp</label>
+              <input type="text" class="form-input" id="memberFormLop" placeholder="VD: 24SE1" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Ngày sinh</label>
+              <input type="text" class="form-input" id="memberFormDob" placeholder="dd/mm/yyyy" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Link Facebook</label>
+              <input type="url" class="form-input" id="memberFormFacebook" placeholder="https://facebook.com/..." />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Vai trò</label>
+              <select class="form-select" id="memberFormRole">
+                <option value="Thành viên">Thành viên</option>
+                <option value="Chủ nhiệm">Chủ nhiệm</option>
+                <option value="Phó Chủ nhiệm">Phó Chủ nhiệm</option>
+                <option value="Ban Chuyên môn">Ban Chuyên môn</option>
+                <option value="Ban Truyền thông - Đối ngoại">Ban Truyền thông - Đối ngoại</option>
+                <option value="Ban Sự kiện">Ban Sự kiện</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ngày tham gia</label>
+              <input type="date" class="form-input" id="memberFormDate" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="memberFormEmail" placeholder="email@example.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số điện thoại</label>
+            <input type="tel" class="form-input" id="memberFormPhone" placeholder="0123 456 789" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancelMemberModal">Hủy</button>
+        <button class="btn btn-primary" id="saveMemberBtn">Lưu thành viên</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Modal -->
+  <div class="modal-overlay" id="sessionModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="sessionModalTitle">Thêm buổi học</h2>
+        <button class="modal-close" id="closeSessionModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="sessionForm">
+          <input type="hidden" id="sessionFormId" />
+          <div class="form-group">
+            <label class="form-label required">Tên buổi học</label>
+            <input type="text" class="form-input" id="sessionFormName" placeholder="VD: Buổi 1 - Tháng 3/2025" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Ngày</label>
+            <input type="date" class="form-input" id="sessionFormDate" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Chủ đề</label>
+            <input type="text" class="form-input" id="sessionFormTopic" placeholder="Chủ đề hoặc nội dung buổi học..." />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancelSessionModal">Hủy</button>
+        <button class="btn btn-primary" id="saveSessionBtn">Lưu buổi học</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Nhập danh sách từ Excel</h2>
+        <button class="modal-close" id="closeImportModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="import-dropzone" id="importDropzone">
+          <div class="dropzone-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <p class="dropzone-text">Kéo thả file Excel vào đây</p>
+          <p class="dropzone-hint">hoặc</p>
+          <label class="btn btn-outline" for="importFileInput">Chọn file</label>
+          <input type="file" id="importFileInput" accept=".xlsx,.xls" style="display:none" />
+          <p class="dropzone-format">Hỗ trợ: .xlsx, .xls</p>
+        </div>
+        <div id="importResult" style="display:none" class="import-result"></div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="btn btn-outline" id="downloadTemplateBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Tải file mẫu
+        </button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-ghost" id="cancelImportModal">Đóng</button>
+          <button class="btn btn-primary" id="confirmImport" disabled>Nhập dữ liệu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Confirm Dialog -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal modal--sm">
+      <div class="modal-header">
+        <h2 class="modal-title" id="confirmTitle">Xác nhận</h2>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="confirmCancel">Hủy</button>
+        <button class="btn btn-danger" id="confirmOk">Xác nhận xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/members.js"></script>
+  <script src="js/sessions.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
