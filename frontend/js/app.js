@@ -35,12 +35,12 @@ const App = {
 
     // Global export button (top bar)
     document.getElementById('exportBtn').addEventListener('click', () => {
+      const page = App._currentPage;
       let type = 'attendance';
-      if (this._currentPage === 'members') type = 'members';
-      else if (this._currentPage === 'sessions') type = 'sessions';
-      else if (this._currentPage === 'dashboard') type = 'attendance';
+      if (page === 'members') type = 'members';
+      else if (page === 'sessions') type = 'sessions';
 
-      window.location.href = Api.exportUrl(type);
+      window.open(`/api/export?type=${type}&t=${Date.now()}`, '_blank');
       Toast.info('Đang xuất file Excel...');
     });
 
