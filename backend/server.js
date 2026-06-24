@@ -205,40 +205,44 @@ app.post('/api/email/send-warning', async (req, res) => {
   if (!email) return res.status(400).json({ success: false, message: 'Thành viên không có địa chỉ email' });
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
+    const htmlBody = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 20px; text-align: center; color: white;">
+          <h2 style="margin: 0;">Thông Báo Điểm Danh</h2>
+        </div>
+        <div style="padding: 20px;">
+          <p>Chào <strong>${name}</strong>,</p>
+          <p>Ban Chủ nhiệm CLB Tiếng Anh VKU xin thông báo: Hiện tại bạn đã vắng mặt <strong style="color:red">${absentCount}</strong> buổi sinh hoạt.</p>
+          <p>Việc tham gia đầy đủ và tích cực là một trong những tiêu chí quan trọng để duy trì tư cách thành viên và đảm bảo hiệu quả hoạt động của CLB.</p>
+          <p>Mong bạn sắp xếp thời gian để tham gia đầy đủ các buổi sinh hoạt sắp tới. Nếu có lý do chính đáng, vui lòng phản hồi lại email này hoặc liên hệ trực tiếp với Ban Chủ nhiệm CLB Tiếng Anh VKU.</p>
+          <br/>
+          <p>Trân trọng,<br/><strong>Ban Chủ nhiệm CLB Tiếng Anh VKU.</strong></p>
+        </div>
+        <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #888;">
+          Đây là email tự động từ Hệ thống quản lý nhân sự CLB Tiếng Anh VKU.
+        </div>
+      </div>
+    `;
+
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbzVkpiW5xfUjB31muPV6dIOFyWqsOhvrdlnVZUjUT359XDBY5kp-5KnEvRBhb6wvBBK/exec';
+    
+    // Call Google Apps Script Web App
+    const response = await fetch(gasUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        to: email,
+        subject: 'Nhắc nhở tham gia sinh hoạt CLB Tiếng Anh VKU',
+        html: htmlBody
+      })
     });
 
-    const mailOptions = {
-      from: `"VKU FOREIGN LANGUAGE CLUB" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Nhắc nhở tham gia sinh hoạt CLB Tiếng Anh VKU',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-          <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 20px; text-align: center; color: white;">
-            <h2 style="margin: 0;">Thông Báo Điểm Danh</h2>
-          </div>
-          <div style="padding: 20px;">
-            <p>Chào <strong>${name}</strong>,</p>
-            <p>Ban Chủ nhiệm CLB Tiếng Anh VKU xin thông báo: Hiện tại bạn đã vắng mặt <strong style="color:red">${absentCount}</strong> buổi sinh hoạt.</p>
-            <p>Việc tham gia đầy đủ và tích cực là một trong những tiêu chí quan trọng để duy trì tư cách thành viên và đảm bảo hiệu quả hoạt động của CLB.</p>
-            <p>Mong bạn sắp xếp thời gian để tham gia đầy đủ các buổi sinh hoạt sắp tới. Nếu có lý do chính đáng, vui lòng phản hồi lại email này hoặc liên hệ trực tiếp với Ban Chủ nhiệm CLB Tiếng Anh VKU.</p>
-            <br/>
-            <p>Trân trọng,<br/><strong>Ban Chủ nhiệm CLB Tiếng Anh VKU.</strong></p>
-          </div>
-          <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #888;">
-            Đây là email tự động từ Hệ thống quản lý nhân sự CLB Tiếng Anh VKU.
-          </div>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.json({ success: true, message: 'Đã gửi email thành công' });
+    const result = await response.json();
+    
+    if (result.success) {
+      res.json({ success: true, message: 'Đã gửi email thành công qua Apps Script' });
+    } else {
+      res.status(500).json({ success: false, message: 'Lỗi từ Google Apps Script: ' + result.error });
+    }
   } catch (err) {
     console.error('Email error:', err);
     res.status(500).json({ success: false, message: 'Lỗi gửi email: ' + err.message });
