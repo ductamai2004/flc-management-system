@@ -35,7 +35,12 @@ const App = {
 
     // Global export button (top bar)
     document.getElementById('exportBtn').addEventListener('click', () => {
-      window.location.href = Api.exportUrl();
+      let type = 'attendance';
+      if (this._currentPage === 'members') type = 'members';
+      else if (this._currentPage === 'sessions') type = 'sessions';
+      else if (this._currentPage === 'dashboard') type = 'attendance';
+
+      window.location.href = Api.exportUrl(type);
       Toast.info('Đang xuất file Excel...');
     });
 
@@ -65,6 +70,14 @@ const App = {
       reports: 'Báo cáo'
     };
     document.getElementById('topbarTitle').textContent = titles[page] || page;
+
+    // Toggle export button
+    const exportBtn = document.getElementById('exportBtn');
+    if (page === 'reports') {
+      exportBtn.style.display = 'none';
+    } else {
+      exportBtn.style.display = 'flex';
+    }
 
     // Load page data
     this.loadPage(page);

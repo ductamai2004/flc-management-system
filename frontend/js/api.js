@@ -48,7 +48,7 @@ const Api = {
     return res.json();
   },
 
-  exportUrl() {
-    return `${API_BASE}/export`;
+  exportUrl(type = 'attendance') {
+    return `${API_BASE}/export?type=${type}`;
   }
 };
