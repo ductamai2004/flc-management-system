@@ -208,7 +208,7 @@ app.post('/api/email/send-warning', async (req, res) => {
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
         <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 20px; text-align: center; color: white;">
-          <h2 style="margin: 0;">Thông Báo Điểm Danh</h2>
+          <h2 style="margin: 0;">NHẮC NHỞ THAM GIA SINH HOẠT CLB TIẾNG ANH VKU</h2>
         </div>
         <div style="padding: 20px;">
           <p>Chào <strong>${name}</strong>,</p>
