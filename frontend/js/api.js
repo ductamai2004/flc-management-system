@@ -15,8 +15,9 @@ const Api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status}`);
+      let msg = `HTTP ${res.status}`;
+      try { const errData = await res.json(); msg = errData.message || msg; } catch (e) {}
+      throw new Error(msg);
     }
     return res.json();
   },
@@ -28,8 +29,9 @@ const Api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status}`);
+      let msg = `HTTP ${res.status}`;
+      try { const errData = await res.json(); msg = errData.message || msg; } catch (e) {}
+      throw new Error(msg);
     }
     return res.json();
   },
