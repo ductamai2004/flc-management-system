@@ -412,57 +412,59 @@ app.get('/api/export', async (req, res) => {
     let sheetName = '';
     let fileName = '';
 
+    const fmtDate = (d) => {
+      if (!d) return '';
+      if (d.includes('-')) {
+        const p = d.split('-');
+        if (p.length === 3 && p[0].length === 4) return `${p[2]}/${p[1]}/${p[0]}`;
+      }
+      return d;
+    };
+
     if (type === 'members') {
-      headers = ['STT', 'Họ và Tên', 'Vai trò', 'MSSV', 'Lớp', 'Ngày sinh', 'Link Facebook', 'Email', 'Số điện thoại', 'Ngày tham gia', 'Trạng thái'];
-      rows = members.map((member, idx) => {
-        let exportDob = member.dob || '';
-        if (exportDob.includes('-')) {
-          const parts = exportDob.split('-');
-          if (parts.length === 3 && parts[0].length === 4) exportDob = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        let exportJoin = member.joinDate || '';
-        if (exportJoin.includes('-')) {
-          const parts = exportJoin.split('-');
-          if (parts.length === 3 && parts[0].length === 4) exportJoin = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        return [idx + 1, member.name, member.role, member.mssv || '', member.lop || '', exportDob, member.facebook || '', member.email || '', member.phone || '', exportJoin, member.active ? 'Hoạt động' : 'Nghỉ'];
-      });
+      // Họ tên, MSSV, Lớp, Ngày sinh, Vai trò, Email, SĐT, Facebook
+      headers = ['STT', 'Họ và Tên', 'MSSV', 'Lớp', 'Ngày sinh', 'Vai trò', 'Email', 'Số điện thoại', 'Link Facebook'];
+      rows = members.filter(m => m.active).map((member, idx) => [
+        idx + 1,
+        member.name,
+        member.mssv || '',
+        member.lop || '',
+        fmtDate(member.dob),
+        member.role || '',
+        member.email || '',
+        member.phone || '',
+        member.facebook || ''
+      ]);
       sheetName = 'Thành viên';
       fileName = 'FLC_Thanh_Vien.xlsx';
+
     } else if (type === 'sessions') {
-      headers = ['STT', 'Tên buổi sinh hoạt', 'Ngày', 'Nội dung', 'Số lượng có mặt', 'Số lượng vắng'];
+      // Buổi học, Ngày, Nội dung, Số có mặt, Số vắng, Tỉ lệ có mặt
+      headers = ['STT', 'Buổi học', 'Ngày', 'Nội dung buổi học', 'Số lượng có mặt', 'Số lượng vắng', 'Tỉ lệ có mặt (%)'];
       rows = sessions.map((session, idx) => {
-        const sessionAttendance = attendance.filter(a => a.sessionId === session.id);
-        const presentCount = sessionAttendance.filter(a => a.status === 'present').length;
-        const absentCount = sessionAttendance.filter(a => a.status === 'absent').length;
-        
-        let exportDate = session.date || '';
-        if (exportDate.includes('-')) {
-          const parts = exportDate.split('-');
-          if (parts.length === 3 && parts[0].length === 4) exportDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        return [idx + 1, session.name, exportDate, session.topic || '', presentCount, absentCount];
+        const sa = attendance.filter(a => a.sessionId === session.id);
+        const present = sa.filter(a => a.status === 'present').length;
+        const absent = sa.filter(a => a.status === 'absent').length;
+        const total = present + absent;
+        const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+        return [idx + 1, session.name, fmtDate(session.date), session.topic || '', present, absent, `${rate}%`];
       });
       sheetName = 'Buổi học';
       fileName = 'FLC_Buoi_Hoc.xlsx';
+
     } else { // attendance
-      headers = ['STT', 'Họ và Tên', 'Vai trò', 'MSSV', 'Lớp', 'Ngày sinh', 'Link Facebook', ...sessions.map(s => s.name), 'Tổng buổi có mặt', 'Tỉ lệ (%)'];
+      // Họ tên, MSSV, Lớp, Buổi 1... Buổi N, Tổng buổi, Có mặt (%)
+      headers = ['STT', 'Họ và Tên', 'MSSV', 'Lớp', ...sessions.map(s => s.name), 'Tổng buổi', 'Có mặt (%)'];
       rows = members.filter(m => m.active).map((member, idx) => {
-        const memberAttendance = attendance.filter(a => a.memberId === member.id);
+        const ma = attendance.filter(a => a.memberId === member.id);
         const sessionStatuses = sessions.map(session => {
-          const rec = memberAttendance.find(a => a.sessionId === session.id);
+          const rec = ma.find(a => a.sessionId === session.id);
           return rec ? (rec.status === 'present' ? 'Có mặt' : rec.status === 'absent' ? 'Vắng' : '-') : '-';
         });
-        const present = memberAttendance.filter(a => a.status === 'present').length;
-        const total = memberAttendance.filter(a => a.status !== 'not_recorded').length;
+        const present = ma.filter(a => a.status === 'present').length;
+        const total = ma.filter(a => a.status === 'present' || a.status === 'absent').length;
         const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-        
-        let exportDob = member.dob || '';
-        if (exportDob.includes('-')) {
-          const parts = exportDob.split('-');
-          if (parts.length === 3 && parts[0].length === 4) exportDob = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        return [idx + 1, member.name, member.role, member.mssv || '', member.lop || '', exportDob, member.facebook || '', ...sessionStatuses, present, `${rate}%`];
+        return [idx + 1, member.name, member.mssv || '', member.lop || '', ...sessionStatuses, total, `${rate}%`];
       });
       sheetName = 'Điểm danh';
       fileName = 'FLC_Diem_Danh.xlsx';
@@ -478,6 +480,7 @@ app.get('/api/export', async (req, res) => {
     res.send(buffer);
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
+
 
 app.get('/api/template', (req, res) => {
   const headers = ['STT', 'Họ và Tên', 'Vai trò', 'MSSV', 'Lớp', 'Ngày sinh', 'Email', 'Số điện thoại', 'Link Facebook'];
