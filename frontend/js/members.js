@@ -252,29 +252,33 @@ const Members = {
     else if (member.role === 'Ban Truyền thông - Đối ngoại') roleLabel = 'Ban Truyền thông';
 
     const cardHtml = `
-      <div id="printCardWrapper" style="width: 280px; height: 440px; border-radius: 12px; background: white; border: 1px solid #ddd; overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1)">
-        <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 20px; text-align: center; color: white;">
-          <h2 style="margin:0; font-size: 16px; font-weight: 700">VKU FLC</h2>
-          <div style="font-size: 11px; opacity: 0.9">English Club</div>
-        </div>
-        <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; flex: 1">
-          <div style="width: 80px; height: 80px; border-radius: 50%; background: #f0f0f0; color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin-bottom: 16px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1)">
-            ${getInitials(member.name)}
+      <div id="printCardOuter" style="padding: 16px; background: #f8f9fa; display: inline-block;">
+        <div id="printCardWrapper" style="width: 280px; border-radius: 16px; background: white; border: 2px solid #e2e8f0; display: flex; flex-direction: column; font-family: Arial, sans-serif; overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 24px 20px 20px; text-align: center; color: white;">
+            <div style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; margin-bottom: 4px;">CLB TIẾNG ANH</div>
+            <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px;">VKU FLC</h2>
+            <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">English Club • Thẻ thành viên</div>
           </div>
-          <div style="font-size: 18px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 4px">${member.name}</div>
-          <div style="font-size: 13px; color: #6366f1; font-weight: 600; margin-bottom: 16px">${roleLabel}</div>
-          
-          <div style="width: 100%; font-size: 12px; color: #475569; display: grid; grid-template-columns: 1fr; gap: 6px">
-            ${member.mssv ? `<div><strong>MSSV:</strong> ${member.mssv}</div>` : ''}
-            ${member.lop ? `<div><strong>Lớp:</strong> ${member.lop}</div>` : ''}
+          <div style="padding: 24px 20px; display: flex; flex-direction: column; align-items: center;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #ede9fe, #c4b5fd); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; margin-bottom: 12px; border: 3px solid #6366f1;">
+              ${getInitials(member.name)}
+            </div>
+            <div style="font-size: 17px; font-weight: 800; color: #1e293b; text-align: center; margin-bottom: 4px;">${member.name}</div>
+            <div style="display: inline-block; font-size: 11px; color: white; font-weight: 700; background: #6366f1; padding: 3px 12px; border-radius: 20px; margin-bottom: 16px;">${roleLabel}</div>
+            
+            <div style="width: 100%; font-size: 12px; color: #475569; border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; flex-direction: column; gap: 5px;">
+              ${member.mssv ? `<div style="display:flex; justify-content:space-between;"><span style="color:#94a3b8;">MSSV</span><strong style="color:#1e293b;">${member.mssv}</strong></div>` : ''}
+              ${member.lop ? `<div style="display:flex; justify-content:space-between;"><span style="color:#94a3b8;">Lớp</span><strong style="color:#1e293b;">${member.lop}</strong></div>` : ''}
+            </div>
+
+            <div style="margin-top: 16px; padding: 8px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: center;" id="qrcode-${member.id}"></div>
+            <div style="margin-top: 8px; font-size: 10px; color: #94a3b8; text-align: center;">Quét QR để điểm danh</div>
           </div>
-          
-          <div style="margin-top: auto; display: flex; justify-content: center" id="qrcode-${member.id}"></div>
+          <div style="background: #f8fafc; padding: 10px 16px; text-align: center; border-top: 1px solid #f1f5f9;">
+            <div style="font-size: 10px; color: #94a3b8; letter-spacing: 0.5px;">Trường Đại học Công nghệ Thông tin và Truyền thông Việt - Hàn</div>
+          </div>
         </div>
       </div>
-      <style>
-        #printCardWrapper { box-shadow: none !important; border: 1px solid #000 !important; }
-      </style>
     `;
 
     document.getElementById('memberCardPreview').innerHTML = cardHtml;
@@ -298,7 +302,8 @@ const Members = {
 
   downloadCardPdf() {
     if (!this._currentPrintMember) return;
-    const element = document.getElementById('printCardWrapper');
+    // Use the outer wrapper (with padding) so border/corners aren't clipped
+    const element = document.getElementById('printCardOuter');
     
     const btn = document.getElementById('printMemberCardBtn');
     const originalText = btn.innerHTML;
@@ -308,11 +313,11 @@ const Members = {
     const safeName = this._currentPrintMember.name.replace(/[^a-zA-Z0-9]/g, '_');
     
     const opt = {
-      margin:       [10, 10, 10, 10],
+      margin:       0,
       filename:     `The_Thanh_Vien_${safeName}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'px', format: [300, 460], orientation: 'portrait' }
+      image:        { type: 'png', quality: 1 },
+      html2canvas:  { scale: 3, useCORS: true, backgroundColor: '#f8f9fa', logging: false },
+      jsPDF:        { unit: 'mm', format: [90, 150], orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
