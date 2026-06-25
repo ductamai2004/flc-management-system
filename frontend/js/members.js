@@ -252,11 +252,11 @@ const Members = {
     else if (member.role === 'Ban Truyền thông - Đối ngoại') roleLabel = 'Ban Truyền thông';
 
     const cardHtml = `
-      <div id="printCardOuter" style="display:inline-block; padding: 0;">
-        <div id="printCardWrapper" style="width: 297px; height: 419px; box-sizing: border-box; border-radius: 12px; background: rgb(255, 255, 255); border: 2px solid rgb(226, 232, 240); display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; overflow: hidden; position: relative;">
+      <div id="printCardOuter" style="display:inline-block; padding: 4px; background: rgb(255,255,255);">
+        <div id="printCardWrapper" style="width: 297px; height: 419px; box-sizing: border-box; border-radius: 12px; background: rgb(255, 255, 255); border: 2px solid rgb(226, 232, 240); display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; position: relative;">
           
           <!-- Header -->
-          <div style="background: rgb(99, 102, 241); height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgb(255, 255, 255);">
+          <div style="background: rgb(99, 102, 241); height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgb(255, 255, 255); border-top-left-radius: 10px; border-top-right-radius: 10px;">
             <div style="font-size: 10px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.9; margin-bottom: 2px;">CLB TIẾNG ANH VKU</div>
             <div style="margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.5px;">VKU FOREIGN LANGUAGE CLUB</div>
             <div style="font-size: 11px; opacity: 0.9; margin-top: 4px;">Thẻ thành viên</div>
@@ -282,7 +282,7 @@ const Members = {
           </div>
           
           <!-- Footer -->
-          <div style="background: rgb(248, 250, 252); height: 28px; display: flex; align-items: center; justify-content: center; border-top: 1px solid rgb(241, 245, 249);">
+          <div style="background: rgb(248, 250, 252); height: 28px; display: flex; align-items: center; justify-content: center; border-top: 1px solid rgb(241, 245, 249); border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
             <div style="font-size: 9px; color: rgb(148, 163, 184);">ĐH Công nghệ TT &amp; TT Việt - Hàn (VKU)</div>
           </div>
         </div>
@@ -308,7 +308,7 @@ const Members = {
 
   downloadCardPdf() {
     if (!this._currentPrintMember) return;
-    const element = document.getElementById('printCardWrapper');
+    const element = document.getElementById('printCardOuter');
     
     const btn = document.getElementById('printMemberCardBtn');
     const originalText = btn.innerHTML;
@@ -322,7 +322,7 @@ const Members = {
       filename:     `The_Thanh_Vien_${safeName}.pdf`,
       image:        { type: 'jpeg', quality: 1 },
       html2canvas:  { scale: 4, useCORS: true, logging: false },
-      jsPDF:        { unit: 'px', format: [297, 419], orientation: 'portrait' }
+      jsPDF:        { unit: 'mm', format: 'a6', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
