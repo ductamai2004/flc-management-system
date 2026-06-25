@@ -211,7 +211,7 @@ const Attendance = {
       Toast.error('Vui lòng chọn buổi sinh hoạt trước khi quét QR');
       return;
     }
-    document.getElementById('qrScannerModal').style.display = 'flex';
+    openModal('qrScannerModal');
     document.getElementById('qrScanResult').style.display = 'none';
 
     const html5QrCode = new Html5Qrcode('qr-reader');
@@ -232,7 +232,7 @@ const Attendance = {
       this._qrScanner.stop().catch(() => {});
       this._qrScanner = null;
     }
-    document.getElementById('qrScannerModal').style.display = 'none';
+    closeModal('qrScannerModal');
   },
 
   handleQrScan(memberId) {
