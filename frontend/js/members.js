@@ -4,6 +4,7 @@ const Members = {
   _members: [],
   _attendanceStats: {},
   _editId: null,
+  _pendingAvatarBase64: null,
 
   async load() {
     try {
@@ -74,7 +75,7 @@ const Members = {
     return `
       <div class="member-card">
         <div class="member-card-header">
-          <div class="member-avatar">${initials}</div>
+          ${member.avatar ? `<img src="${member.avatar}" class="member-avatar" style="object-fit:cover; border:2px solid rgb(99,102,241);" />` : `<div class="member-avatar">${initials}</div>`}
           <div class="member-card-actions">
             <button class="btn btn-icon btn-ghost" data-print="${member.id}" title="In thẻ thành viên" style="color:var(--purple-light)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -116,8 +117,10 @@ const Members = {
     `;
   },
 
-  openAdd() {
+  openNew() {
     this._editId = null;
+    this._pendingAvatarBase64 = null;
+    this.updateAvatarPreview();
     document.getElementById('memberModalTitle').textContent = 'Thêm thành viên mới';
     document.getElementById('memberFormId').value = '';
     document.getElementById('memberFormName').value = '';
@@ -136,6 +139,9 @@ const Members = {
     this._editId = id;
     const member = this._members.find(m => m.id === id);
     if (!member) return;
+
+    this._pendingAvatarBase64 = member.avatar || null;
+    this.updateAvatarPreview();
 
     document.getElementById('memberModalTitle').textContent = 'Chỉnh sửa thành viên';
     document.getElementById('memberFormId').value = member.id;
@@ -179,7 +185,8 @@ const Members = {
       facebook: document.getElementById('memberFormFacebook').value.trim(),
       joinDate: document.getElementById('memberFormDate').value,
       email: document.getElementById('memberFormEmail').value.trim(),
-      phone: document.getElementById('memberFormPhone').value.trim()
+      phone: document.getElementById('memberFormPhone').value.trim(),
+      avatar: this._pendingAvatarBase64
     };
 
     try {
@@ -265,9 +272,12 @@ const Members = {
           <!-- Body -->
           <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px; background: rgb(255, 255, 255);">
             <!-- Avatar -->
-            <div style="width: 70px; height: 70px; border-radius: 50%; background: rgb(237, 233, 254); color: rgb(99, 102, 241); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; margin-top: 6px; margin-bottom: 8px; border: 3px solid rgb(99, 102, 241);">
-              ${getInitials(member.name)}
-            </div>
+            ${member.avatar ? 
+              `<img src="${member.avatar}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-top: 6px; margin-bottom: 8px; border: 3px solid rgb(99, 102, 241);" />` : 
+              `<div style="width: 70px; height: 70px; border-radius: 50%; background: rgb(237, 233, 254); color: rgb(99, 102, 241); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; margin-top: 6px; margin-bottom: 8px; border: 3px solid rgb(99, 102, 241);">
+                ${getInitials(member.name)}
+              </div>`
+            }
             
             <div style="font-size: 16px; font-weight: 800; color: rgb(30, 41, 59); text-align: center; margin-bottom: 4px;">${member.name}</div>
             <div style="display: inline-block; font-size: 11px; color: rgb(255, 255, 255); font-weight: 700; background: rgb(99, 102, 241); padding: 3px 12px; border-radius: 12px; margin-bottom: 12px;">${roleLabel}</div>
@@ -408,6 +418,42 @@ const Members = {
         Gửi email
       `;
     }
+  },
+
+  updateAvatarPreview() {
+    const preview = document.getElementById('memberFormAvatarPreview');
+    if (!preview) return;
+    if (this._pendingAvatarBase64) {
+      preview.innerHTML = `<img src="${this._pendingAvatarBase64}" style="width:100%;height:100%;object-fit:cover;" />`;
+    } else {
+      preview.innerHTML = `<span style="color: var(--text-muted); font-size: 24px;">📷</span>`;
+    }
+  },
+
+  triggerAvatarUpload() {
+    let fileInput = document.getElementById('_memberAvatarInput');
+    if (!fileInput) {
+      fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.id = '_memberAvatarInput';
+      fileInput.accept = 'image/*';
+      fileInput.style.display = 'none';
+      fileInput.addEventListener('change', (e) => this.onAvatarSelected(e));
+      document.body.appendChild(fileInput);
+    }
+    fileInput.value = '';
+    fileInput.click();
+  },
+
+  onAvatarSelected(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      this._pendingAvatarBase64 = evt.target.result;
+      this.updateAvatarPreview();
+    };
+    reader.readAsDataURL(file);
   }
 };
 

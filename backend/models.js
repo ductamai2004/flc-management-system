@@ -13,6 +13,7 @@ const memberSchema = new mongoose.Schema({
   lop: { type: String, default: '' },
   dob: { type: String, default: '' },
   facebook: { type: String, default: '' },
+  avatar: { type: String, default: '' },
   active: { type: Boolean, default: true },
   createdAt: { type: String, default: () => new Date().toISOString() }
 }, { 

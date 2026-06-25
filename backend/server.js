@@ -67,7 +67,7 @@ app.get('/api/members/:id', async (req, res) => {
 
 app.post('/api/members', async (req, res) => {
   try {
-    const { name, role, joinDate, email, phone, mssv, lop, dob, facebook } = req.body;
+    const { name, role, joinDate, email, phone, mssv, lop, dob, facebook, avatar } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ success: false, message: 'Name is required' });
 
     const count = await Member.countDocuments();
@@ -83,6 +83,7 @@ app.post('/api/members', async (req, res) => {
       lop: lop || '',
       dob: dob || '',
       facebook: facebook || '',
+      avatar: avatar || '',
       active: true
     });
     await newMember.save();
@@ -491,6 +492,7 @@ app.post('/api/import', upload.single('file'), async (req, res) => {
       if (hLower.includes('email')) colMap.email = idx;
       if (hLower.includes('điện thoại') || hLower.includes('sdt') || hLower.includes('phone')) colMap.phone = idx;
       if (hLower.includes('facebook') || hLower.includes('fb')) colMap.facebook = idx;
+      if (hLower.includes('avatar') || hLower.includes('ảnh đại diện')) colMap.avatar = idx;
     });
 
     if (colMap.name === undefined) colMap.name = 1;
@@ -537,6 +539,7 @@ app.post('/api/import', upload.single('file'), async (req, res) => {
       const email = colMap.email !== undefined && row[colMap.email] ? String(row[colMap.email]).trim() : '';
       const phone = colMap.phone !== undefined && row[colMap.phone] ? String(row[colMap.phone]).trim() : '';
       const facebook = colMap.facebook !== undefined && row[colMap.facebook] ? String(row[colMap.facebook]).trim() : '';
+      const avatar = colMap.avatar !== undefined && row[colMap.avatar] ? String(row[colMap.avatar]).trim() : '';
 
       // Find member case insensitive
       let member = await Member.findOne({ name: { $regex: new RegExp(`^${trimmedName}$`, 'i') } });
@@ -555,6 +558,7 @@ app.post('/api/import', upload.single('file'), async (req, res) => {
           lop,
           dob,
           facebook,
+          avatar,
           active: true
         });
       } else {
@@ -565,6 +569,7 @@ app.post('/api/import', upload.single('file'), async (req, res) => {
         if(row[colMap.email]) member.email = email;
         if(row[colMap.phone]) member.phone = phone;
         if(row[colMap.facebook]) member.facebook = facebook;
+        if(row[colMap.avatar]) member.avatar = avatar;
       }
       await member.save();
       imported++;

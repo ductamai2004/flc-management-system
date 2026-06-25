@@ -524,6 +524,12 @@
       <div class="modal-body">
         <form id="memberForm">
           <input type="hidden" id="memberFormId" />
+          <div class="form-group" style="display:flex; flex-direction:column; align-items:center; margin-bottom: 20px;">
+            <div id="memberFormAvatarPreview" style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-secondary); border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px;">
+              <span style="color: var(--text-muted); font-size: 24px;">📷</span>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="Members.triggerAvatarUpload()" style="font-size: 13px;">Đổi Avatar</button>
+          </div>
           <div class="form-group">
             <label class="form-label required">Họ và Tên</label>
             <input type="text" class="form-input" id="memberFormName" placeholder="Nhập họ và tên..." required />
