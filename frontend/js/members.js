@@ -252,33 +252,38 @@ const Members = {
     else if (member.role === 'Ban Truyền thông - Đối ngoại') roleLabel = 'Ban Truyền thông';
 
     const cardHtml = `
-      <div id="printCardOuter" style="display:inline-block; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-        <div id="printCardWrapper" style="width: 105mm; height: 148mm; box-sizing: border-box; border-radius: 4mm; background-color: white; border: 0.5mm solid #e2e8f0; display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-          <div style="background-color: #6366f1; height: 32mm; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-            <div style="font-size: 3.5mm; letter-spacing: 0.5mm; text-transform: uppercase; opacity: 0.85; margin-bottom: 1mm;">CLB TIẾNG ANH VKU</div>
-            <div style="margin: 0; font-size: 5mm; font-weight: 900; letter-spacing: 0.2mm; line-height: 1.2;">VKU FOREIGN LANGUAGE CLUB</div>
-            <div style="font-size: 4mm; opacity: 0.9; margin-top: 2mm;">Thẻ thành viên</div>
+      <div id="printCardOuter" style="display:inline-block; padding: 0;">
+        <div id="printCardWrapper" style="width: 297px; height: 419px; box-sizing: border-box; border-radius: 12px; background: rgb(255, 255, 255); border: 2px solid rgb(226, 232, 240); display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; overflow: hidden; position: relative;">
+          
+          <!-- Header -->
+          <div style="background: rgb(99, 102, 241); height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgb(255, 255, 255);">
+            <div style="font-size: 10px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.9; margin-bottom: 2px;">CLB TIẾNG ANH VKU</div>
+            <div style="margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.5px;">VKU FOREIGN LANGUAGE CLUB</div>
+            <div style="font-size: 11px; opacity: 0.9; margin-top: 4px;">Thẻ thành viên</div>
           </div>
           
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 4mm; background-color: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-            <div style="width: 25mm; height: 25mm; border-radius: 50%; background-color: #ede9fe; color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 10mm; font-weight: 800; margin-top: 2mm; margin-bottom: 3mm; border: 1mm solid #6366f1; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+          <!-- Body -->
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px; background: rgb(255, 255, 255);">
+            <!-- Avatar -->
+            <div style="width: 70px; height: 70px; border-radius: 50%; background: rgb(237, 233, 254); color: rgb(99, 102, 241); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; margin-top: 6px; margin-bottom: 8px; border: 3px solid rgb(99, 102, 241);">
               ${getInitials(member.name)}
             </div>
             
-            <div style="font-size: 6mm; font-weight: 800; color: #1e293b; text-align: center; margin-bottom: 2mm;">${member.name}</div>
-            <div style="display: inline-block; font-size: 4mm; color: white; font-weight: 700; background-color: #6366f1; padding: 1mm 4mm; border-radius: 4mm; margin-bottom: 4mm; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${roleLabel}</div>
+            <div style="font-size: 16px; font-weight: 800; color: rgb(30, 41, 59); text-align: center; margin-bottom: 4px;">${member.name}</div>
+            <div style="display: inline-block; font-size: 11px; color: rgb(255, 255, 255); font-weight: 700; background: rgb(99, 102, 241); padding: 3px 12px; border-radius: 12px; margin-bottom: 12px;">${roleLabel}</div>
             
-            <div style="width: 90%; font-size: 4mm; color: #475569; border-top: 0.3mm solid #f1f5f9; padding-top: 4mm; display: flex; flex-direction: column; gap: 2mm;">
-              ${member.mssv ? '<div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">MSSV</span><strong style="color:#1e293b;">' + member.mssv + '</strong></div>' : ''}
-              ${member.lop ? '<div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Lớp</span><strong style="color:#1e293b;">' + member.lop + '</strong></div>' : ''}
+            <div style="width: 90%; font-size: 12px; color: rgb(71, 85, 105); border-top: 1px solid rgb(241, 245, 249); padding-top: 10px; display: flex; flex-direction: column; gap: 4px;">
+              ${member.mssv ? '<div style="display:flex;justify-content:space-between;"><span>MSSV</span><strong style="color:#1e293b;">' + member.mssv + '</strong></div>' : ''}
+              ${member.lop ? '<div style="display:flex;justify-content:space-between;"><span>Lớp</span><strong style="color:#1e293b;">' + member.lop + '</strong></div>' : ''}
             </div>
             
-            <div style="margin-top: auto; padding: 2mm; background-color: #f8f9fa; border-radius: 2mm; border: 0.3mm solid #e2e8f0; display: flex; justify-content: center; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;" id="qrcode-${member.id}"></div>
-            <div style="margin-top: 2mm; font-size: 3.5mm; color: #94a3b8; text-align: center;">Quét QR để điểm danh</div>
+            <div style="margin-top: auto; padding: 6px; background: rgb(248, 249, 250); border-radius: 8px; border: 1px solid rgb(226, 232, 240); display: flex; justify-content: center;" id="qrcode-${member.id}"></div>
+            <div style="margin-top: 4px; font-size: 10px; color: rgb(148, 163, 184); text-align: center;">Quét QR để điểm danh</div>
           </div>
           
-          <div style="background-color: #f8fafc; height: 10mm; display: flex; align-items: center; justify-content: center; border-top: 0.3mm solid #f1f5f9; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-            <div style="font-size: 3mm; color: #94a3b8;">ĐH Công nghệ TT &amp; TT Việt - Hàn (VKU)</div>
+          <!-- Footer -->
+          <div style="background: rgb(248, 250, 252); height: 28px; display: flex; align-items: center; justify-content: center; border-top: 1px solid rgb(241, 245, 249);">
+            <div style="font-size: 9px; color: rgb(148, 163, 184);">ĐH Công nghệ TT &amp; TT Việt - Hàn (VKU)</div>
           </div>
         </div>
       </div>
@@ -292,8 +297,8 @@ const Members = {
     setTimeout(() => {
       new QRCode(document.getElementById(`qrcode-${member.id}`), {
         text: member.id,
-        width: 70,
-        height: 70,
+        width: 64,
+        height: 64,
         colorDark: '#1e293b',
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.M
@@ -303,7 +308,7 @@ const Members = {
 
   downloadCardPdf() {
     if (!this._currentPrintMember) return;
-    const element = document.getElementById('printCardWrapper'); // Capture exactly 105x148mm
+    const element = document.getElementById('printCardWrapper');
     
     const btn = document.getElementById('printMemberCardBtn');
     const originalText = btn.innerHTML;
@@ -316,8 +321,8 @@ const Members = {
       margin:       0,
       filename:     `The_Thanh_Vien_${safeName}.pdf`,
       image:        { type: 'jpeg', quality: 1 },
-      html2canvas:  { scale: 4, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a6', orientation: 'portrait' }
+      html2canvas:  { scale: 4, useCORS: true, logging: false },
+      jsPDF:        { unit: 'px', format: [297, 419], orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
