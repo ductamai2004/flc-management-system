@@ -12,10 +12,10 @@ const Sessions = {
         Api.get('/stats')
       ]);
       this._sessions = sessionsRes.data;
-      // Index session stats
       (statsRes.data.sessionStats || []).forEach(s => {
         this._attendanceStats[s.sessionId] = s;
       });
+      this.populateMonthFilter();
       this.render();
     } catch (err) {
       console.error('Sessions load error:', err);
@@ -23,9 +23,39 @@ const Sessions = {
     }
   },
 
+  populateMonthFilter() {
+    const select = document.getElementById('sessionMonthFilter');
+    const current = select.value;
+    const months = new Set();
+    this._sessions.forEach(s => {
+      if (s.date) {
+        const d = new Date(s.date);
+        if (!isNaN(d)) months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      }
+    });
+    const sorted = [...months].sort((a, b) => b.localeCompare(a));
+    select.innerHTML = '<option value="">Tất cả tháng</option>' +
+      sorted.map(m => {
+        const [y, mo] = m.split('-');
+        return `<option value="${m}" ${m === current ? 'selected' : ''}>Tháng ${parseInt(mo)}/${y}</option>`;
+      }).join('');
+  },
+
   render() {
     const list = document.getElementById('sessionsList');
-    if (!this._sessions.length) {
+    const monthFilter = document.getElementById('sessionMonthFilter').value;
+
+    let sessions = [...this._sessions];
+    if (monthFilter) {
+      sessions = sessions.filter(s => {
+        if (!s.date) return false;
+        const d = new Date(s.date);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return key === monthFilter;
+      });
+    }
+
+    if (!sessions.length) {
       list.innerHTML = `
         <div class="empty-page-state">
           <div class="empty-icon">
@@ -41,7 +71,7 @@ const Sessions = {
       return;
     }
 
-    list.innerHTML = this._sessions.map(s => this.renderCard(s)).join('');
+    list.innerHTML = sessions.map(s => this.renderCard(s)).join('');
 
     list.querySelectorAll('[data-edit]').forEach(btn => {
       btn.addEventListener('click', () => this.openEdit(btn.dataset.edit));
@@ -54,6 +84,9 @@ const Sessions = {
         App.navigate('attendance');
         setTimeout(() => Attendance.selectSession(btn.dataset.attend), 200);
       });
+    });
+    list.querySelectorAll('[data-export-session]').forEach(btn => {
+      btn.addEventListener('click', () => this.exportSession(btn.dataset.exportSession));
     });
   },
 
@@ -90,6 +123,9 @@ const Sessions = {
           <button class="btn btn-sm btn-primary" data-attend="${session.id}" title="Điểm danh">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
           </button>
+          <button class="btn btn-icon btn-ghost" data-export-session="${session.id}" title="Xuất điểm danh" style="color:var(--green-light)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
           <button class="btn btn-icon btn-ghost" data-edit="${session.id}" title="Sửa">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
@@ -99,6 +135,11 @@ const Sessions = {
         </div>
       </div>
     `;
+  },
+
+  exportSession(sessionId) {
+    window.open(`/api/export/session/${sessionId}?t=${Date.now()}`, '_blank');
+    Toast.info('Đang xuất điểm danh buổi sinh hoạt...');
   },
 
   openAdd() {
@@ -133,7 +174,6 @@ const Sessions = {
 
     try {
       btn.disabled = true; btn.textContent = 'Đang lưu...';
-
       if (this._editId) {
         await Api.put(`/sessions/${this._editId}`, data);
         Toast.success('Đã cập nhật buổi sinh hoạt');
@@ -141,10 +181,9 @@ const Sessions = {
         await Api.post('/sessions', data);
         Toast.success('Đã thêm buổi sinh hoạt mới');
       }
-
       closeModal('sessionModal');
       await this.load();
-      Attendance.loadSessions(); // refresh attendance select
+      Attendance.loadSessions();
     } catch (err) {
       Toast.error('Lỗi: ' + err.message);
     } finally {
@@ -156,7 +195,6 @@ const Sessions = {
     const session = this._sessions.find(s => s.id === id);
     const confirmed = await Confirm.show(`Xóa buổi sinh hoạt "${session?.name}"? Dữ liệu điểm danh liên quan cũng sẽ bị xóa.`, 'Xóa buổi sinh hoạt');
     if (!confirmed) return;
-
     try {
       await Api.delete(`/sessions/${id}`);
       Toast.success('Đã xóa buổi sinh hoạt');
@@ -174,3 +212,4 @@ const Sessions = {
 document.getElementById('addSessionBtn').addEventListener('click', () => Sessions.openAdd());
 document.getElementById('cancelSessionModal').addEventListener('click', () => closeModal('sessionModal'));
 document.getElementById('saveSessionBtn').addEventListener('click', () => Sessions.save());
+document.getElementById('sessionMonthFilter').addEventListener('change', () => Sessions.render());

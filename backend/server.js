@@ -249,6 +249,60 @@ app.post('/api/email/send-warning', async (req, res) => {
   }
 });
 
+app.post('/api/email/send-bulk', async (req, res) => {
+  const { memberIds, subject, htmlContent } = req.body;
+  if (!memberIds || !memberIds.length || !subject || !htmlContent) {
+    return res.status(400).json({ success: false, message: 'Dữ liệu không hợp lệ' });
+  }
+
+  try {
+    const members = await Member.find({ id: { $in: memberIds }, active: true }).lean();
+    let sentCount = 0;
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbzVkpiW5xfUjB31muPV6dIOFyWqsOhvrdlnVZUjUT359XDBY5kp-5KnEvRBhb6wvBBK/exec';
+
+    for (const member of members) {
+      if (!member.email) continue;
+      
+      const personalizedHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 20px; text-align: center; color: white;">
+            <h2 style="margin: 0;">${subject}</h2>
+          </div>
+          <div style="padding: 20px;">
+            <p>Chào <strong>${member.name}</strong>,</p>
+            <div>${htmlContent.replace(/\n/g, '<br/>')}</div>
+            <br/>
+            <p>Trân trọng,<br/><strong>Ban Chủ nhiệm CLB Tiếng Anh VKU.</strong></p>
+          </div>
+          <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #888;">
+            Đây là email tự động từ Hệ thống quản lý nhân sự CLB Tiếng Anh VKU.
+          </div>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(gasUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            to: member.email,
+            subject: subject,
+            html: personalizedHtml
+          })
+        });
+        const result = await response.json();
+        if (result.success) sentCount++;
+      } catch (e) {
+        console.error('Lỗi gửi email cho', member.email, e);
+      }
+    }
+
+    res.json({ success: true, message: `Đã gửi ${sentCount} email`, sentCount });
+  } catch (err) {
+    console.error('Bulk email error:', err);
+    res.status(500).json({ success: false, message: 'Lỗi gửi email hàng loạt: ' + err.message });
+  }
+});
+
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────
 app.get('/api/stats', async (req, res) => {
   try {
@@ -482,6 +536,50 @@ app.get('/api/export', async (req, res) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buffer);
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+app.get('/api/export/session/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await Session.findOne({ id: sessionId }).lean();
+    if (!session) return res.status(404).json({ success: false, message: 'Không tìm thấy buổi sinh hoạt' });
+
+    const members = await Member.find({ active: true }).lean();
+    const attendance = await Attendance.find({ sessionId }).lean();
+
+    const fmtDate = (d) => {
+      if (!d) return '';
+      if (d.includes('-')) {
+        const p = d.split('-');
+        if (p.length === 3 && p[0].length === 4) return `${p[2]}/${p[1]}/${p[0]}`;
+      }
+      return d;
+    };
+
+    const headers = ['STT', 'Họ và Tên', 'MSSV', 'Lớp', 'Vai trò', 'Trạng thái'];
+    const rows = members.map((member, idx) => {
+      const rec = attendance.find(a => a.memberId === member.id);
+      let status = 'Chưa ghi nhận';
+      if (rec) {
+        if (rec.status === 'present') status = 'Có mặt';
+        else if (rec.status === 'absent') status = 'Vắng';
+      }
+      return [idx + 1, member.name, member.mssv || '', member.lop || '', member.role || '', status];
+    });
+
+    const data = [headers, ...rows];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data), 'Diem_Danh');
+
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const safeName = session.name.replace(/[^a-zA-Z0-9]/g, '_');
+    
+    res.setHeader('Content-Disposition', `attachment; filename="DiemDanh_${safeName}.xlsx"`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 

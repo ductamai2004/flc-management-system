@@ -47,6 +47,9 @@ const Members = {
     grid.innerHTML = members.map(m => this.renderCard(m)).join('');
 
     // Bind actions
+    grid.querySelectorAll('[data-print]').forEach(btn => {
+      btn.addEventListener('click', () => this.printCard(btn.dataset.print));
+    });
     grid.querySelectorAll('[data-edit]').forEach(btn => {
       btn.addEventListener('click', () => this.openEdit(btn.dataset.edit));
     });
@@ -73,6 +76,9 @@ const Members = {
         <div class="member-card-header">
           <div class="member-avatar">${initials}</div>
           <div class="member-card-actions">
+            <button class="btn btn-icon btn-ghost" data-print="${member.id}" title="In thẻ thành viên" style="color:var(--purple-light)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            </button>
             <button class="btn btn-icon btn-ghost" data-edit="${member.id}" title="Chỉnh sửa">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
@@ -232,6 +238,138 @@ const Members = {
     } catch (err) {
       Toast.error('Không thể xóa: ' + err.message);
     }
+  },
+
+  printCard(id) {
+    const member = this._members.find(m => m.id === id);
+    if (!member) return;
+    
+    let roleLabel = 'Thành viên';
+    if (member.role === 'leader' || member.role === 'Chủ nhiệm') roleLabel = 'Chủ nhiệm';
+    else if (member.role === 'Phó Chủ nhiệm') roleLabel = 'Phó Chủ nhiệm';
+    else if (member.role === 'Ban Chuyên môn') roleLabel = 'Ban Chuyên môn';
+    else if (member.role === 'Ban Sự kiện') roleLabel = 'Ban Sự kiện';
+    else if (member.role === 'Ban Truyền thông - Đối ngoại') roleLabel = 'Ban Truyền thông';
+
+    const cardHtml = `
+      <div id="printCardWrapper" style="width: 280px; height: 440px; border-radius: 12px; background: white; border: 1px solid #ddd; overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1)">
+        <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 20px; text-align: center; color: white;">
+          <h2 style="margin:0; font-size: 16px; font-weight: 700">VKU FLC</h2>
+          <div style="font-size: 11px; opacity: 0.9">English Club</div>
+        </div>
+        <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; flex: 1">
+          <div style="width: 80px; height: 80px; border-radius: 50%; background: #f0f0f0; color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin-bottom: 16px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1)">
+            ${getInitials(member.name)}
+          </div>
+          <div style="font-size: 18px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 4px">${member.name}</div>
+          <div style="font-size: 13px; color: #6366f1; font-weight: 600; margin-bottom: 16px">${roleLabel}</div>
+          
+          <div style="width: 100%; font-size: 12px; color: #475569; display: grid; grid-template-columns: 1fr; gap: 6px">
+            ${member.mssv ? `<div><strong>MSSV:</strong> ${member.mssv}</div>` : ''}
+            ${member.lop ? `<div><strong>Lớp:</strong> ${member.lop}</div>` : ''}
+          </div>
+          
+          <div style="margin-top: auto; display: flex; justify-content: center" id="qrcode-${member.id}"></div>
+        </div>
+      </div>
+      <style>
+        @media print {
+          body * { visibility: hidden; }
+          #memberCardModal .modal-body, #memberCardModal .modal-body * { visibility: visible; }
+          #memberCardModal .modal-body { position: absolute; left: 0; top: 0; }
+          #closeMemberCardBtn, #closeMemberCardBtn2, #printMemberCardBtn { display: none; }
+          #printCardWrapper { box-shadow: none !important; border: 1px solid #000 !important; }
+        }
+      </style>
+    `;
+
+    document.getElementById('memberCardPreview').innerHTML = cardHtml;
+    openModal('memberCardModal');
+
+    // Generate QR Code
+    setTimeout(() => {
+      new QRCode(document.getElementById(`qrcode-${member.id}`), {
+        text: member.id,
+        width: 80,
+        height: 80,
+        colorDark : "#1e293b",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+      });
+    }, 100);
+  },
+
+  openBulkEmail() {
+    document.getElementById('bulkEmailSubject').value = 'Thông báo từ CLB Tiếng Anh VKU';
+    document.getElementById('bulkEmailContent').value = '';
+    document.getElementById('bulkEmailStatus').style.display = 'none';
+    openModal('bulkEmailModal');
+  },
+
+  async sendBulkEmail() {
+    const target = document.getElementById('bulkEmailTarget').value;
+    const subject = document.getElementById('bulkEmailSubject').value.trim();
+    const content = document.getElementById('bulkEmailContent').value.trim();
+
+    if (!subject || !content) {
+      Toast.error('Vui lòng nhập tiêu đề và nội dung email');
+      return;
+    }
+
+    let targetMembers = [];
+    if (target === 'all') {
+      targetMembers = this._members.filter(m => m.active && m.email);
+    } else if (target === 'absent3') {
+      targetMembers = this._members.filter(m => {
+        if (!m.active || !m.email) return false;
+        const stats = this._attendanceStats[m.id];
+        return stats && stats.absent >= 3;
+      });
+    } else if (target === 'absent5') {
+      targetMembers = this._members.filter(m => {
+        if (!m.active || !m.email) return false;
+        const stats = this._attendanceStats[m.id];
+        return stats && stats.absent >= 5;
+      });
+    }
+
+    if (!targetMembers.length) {
+      Toast.error('Không có thành viên nào phù hợp hoặc không có email');
+      return;
+    }
+
+    const btn = document.getElementById('confirmBulkEmailBtn');
+    const statusEl = document.getElementById('bulkEmailStatus');
+    
+    btn.disabled = true;
+    btn.textContent = 'Đang gửi...';
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'rgba(99,102,241,0.1)';
+    statusEl.style.color = 'var(--purple-light)';
+    statusEl.textContent = `Đang chuẩn bị gửi đến ${targetMembers.length} thành viên...`;
+
+    try {
+      const res = await Api.post('/email/send-bulk', {
+        memberIds: targetMembers.map(m => m.id),
+        subject,
+        htmlContent: content
+      });
+
+      if (res.success) {
+        Toast.success(`Đã gửi email thành công đến ${res.sentCount} người`);
+        closeModal('bulkEmailModal');
+      }
+    } catch (err) {
+      statusEl.style.background = 'rgba(255,75,75,0.1)';
+      statusEl.style.color = 'var(--red-light)';
+      statusEl.textContent = 'Lỗi: ' + err.message;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Gửi email
+      `;
+    }
   }
 };
 
@@ -240,6 +378,15 @@ document.getElementById('addMemberBtn').addEventListener('click', () => Members.
 document.getElementById('cancelMemberModal').addEventListener('click', () => closeModal('memberModal'));
 document.getElementById('saveMemberBtn').addEventListener('click', () => Members.save());
 document.getElementById('deleteAllMembersBtn').addEventListener('click', () => Members.deleteAll());
+
+document.getElementById('closeMemberCardBtn').addEventListener('click', () => closeModal('memberCardModal'));
+document.getElementById('closeMemberCardBtn2').addEventListener('click', () => closeModal('memberCardModal'));
+document.getElementById('printMemberCardBtn').addEventListener('click', () => window.print());
+
+document.getElementById('bulkEmailBtn').addEventListener('click', () => Members.openBulkEmail());
+document.getElementById('closeBulkEmailBtn').addEventListener('click', () => closeModal('bulkEmailModal'));
+document.getElementById('cancelBulkEmailBtn').addEventListener('click', () => closeModal('bulkEmailModal'));
+document.getElementById('confirmBulkEmailBtn').addEventListener('click', () => Members.sendBulkEmail());
 
 // Search & filter
 let searchTimer;

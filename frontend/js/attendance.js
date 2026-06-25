@@ -202,6 +202,69 @@ const Attendance = {
     });
 
     this.updateStats();
+  },
+
+  _qrScanner: null,
+
+  openQrScanner() {
+    if (!this._currentSessionId) {
+      Toast.error('Vui lòng chọn buổi sinh hoạt trước khi quét QR');
+      return;
+    }
+    document.getElementById('qrScannerModal').style.display = 'flex';
+    document.getElementById('qrScanResult').style.display = 'none';
+
+    const html5QrCode = new Html5Qrcode('qr-reader');
+    this._qrScanner = html5QrCode;
+
+    html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => { this.handleQrScan(decodedText); },
+      () => {}
+    ).catch(err => {
+      Toast.error('Không thể mở camera: ' + err);
+    });
+  },
+
+  closeQrScanner() {
+    if (this._qrScanner) {
+      this._qrScanner.stop().catch(() => {});
+      this._qrScanner = null;
+    }
+    document.getElementById('qrScannerModal').style.display = 'none';
+  },
+
+  handleQrScan(memberId) {
+    const member = this._members.find(m => m.id === memberId);
+    const resultEl = document.getElementById('qrScanResult');
+
+    if (!member) {
+      resultEl.style.display = 'block';
+      resultEl.style.background = 'rgba(255,75,75,0.15)';
+      resultEl.style.color = 'var(--red-light)';
+      resultEl.textContent = '❌ Không tìm thấy thành viên';
+      return;
+    }
+
+    // Mark as present
+    this._changes[member.id] = 'present';
+    const tbody = document.getElementById('attendanceBody');
+    const row = tbody.querySelector(`tr[data-member-id="${member.id}"]`);
+    if (row) {
+      row.querySelectorAll('.att-btn').forEach(b => b.classList.remove('active'));
+      const target = row.querySelector('.att-btn[data-status="present"]');
+      if (target) target.classList.add('active');
+    }
+    this.updateStats();
+
+    resultEl.style.display = 'block';
+    resultEl.style.background = 'rgba(34,197,94,0.15)';
+    resultEl.style.color = 'var(--green-light)';
+    resultEl.textContent = `✅ Đã điểm danh: ${member.name}`;
+
+    // Stop scanner after successful scan
+    setTimeout(() => this.closeQrScanner(), 1500);
   }
 };
 
@@ -213,8 +276,11 @@ document.getElementById('attendanceSessionSelect').addEventListener('change', (e
 document.getElementById('saveAttendance').addEventListener('click', () => Attendance.save());
 document.getElementById('markAllPresent').addEventListener('click', () => Attendance.markAll('present'));
 document.getElementById('markAllAbsent').addEventListener('click', () => Attendance.markAll('absent'));
+document.getElementById('openQrScannerBtn').addEventListener('click', () => Attendance.openQrScanner());
+document.getElementById('closeQrScannerBtn').addEventListener('click', () => Attendance.closeQrScanner());
 
 document.getElementById('openAttendanceModal').addEventListener('click', () => {
   App.navigate('sessions');
   setTimeout(() => Sessions.openAdd(), 200);
 });
+

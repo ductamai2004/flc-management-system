@@ -240,6 +240,10 @@
             <div class="header-actions">
               <button class="btn btn-ghost btn-sm" id="markAllPresent">✓ Tất cả có mặt</button>
               <button class="btn btn-ghost btn-sm" id="markAllAbsent">✗ Tất cả vắng</button>
+              <button class="btn btn-ghost btn-sm" id="openQrScannerBtn" title="Quét mã QR">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 14v3h3M14 20h3"/></svg>
+                Quét QR
+              </button>
               <button class="btn btn-primary btn-sm" id="saveAttendance">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                 Lưu điểm danh
@@ -304,6 +308,10 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
               Xóa tất cả
             </button>
+            <button class="btn btn-outline" id="bulkEmailBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Gửi email hàng loạt
+            </button>
             <button class="btn btn-outline" id="importMembersBtn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               Nhập Excel
@@ -351,6 +359,17 @@
               Thêm buổi sinh hoạt
             </button>
           </div>
+        </div>
+
+        <!-- Month Filter -->
+        <div class="filter-bar" style="margin-bottom: 16px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--text-muted)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <label class="form-label" style="margin:0">Lọc theo tháng:</label>
+          </div>
+          <select class="form-select filter-select" id="sessionMonthFilter" style="min-width:180px">
+            <option value="">Tất cả tháng</option>
+          </select>
         </div>
 
         <div class="sessions-list" id="sessionsList">
@@ -540,14 +559,89 @@
     </div>
   </div>
 
-  <script src="js/api.js?v=2"></script>
-  <script src="js/utils.js?v=2"></script>
-  <script src="js/charts.js?v=2"></script>
-  <script src="js/members.js?v=2"></script>
-  <script src="js/sessions.js?v=2"></script>
-  <script src="js/attendance.js?v=2"></script>
-  <script src="js/dashboard.js?v=2"></script>
-  <script src="js/reports.js?v=2"></script>
-  <script src="js/app.js?v=2"></script>
+  <!-- ── QR Scanner Modal ───────────────────────────────────────────── -->
+  <div class="modal-overlay" id="qrScannerModal" style="display:none">
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header">
+        <h2 class="modal-title">📷 Quét mã QR điểm danh</h2>
+        <button class="modal-close" id="closeQrScannerBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-muted);margin-bottom:12px;font-size:13px">Hướng camera vào mã QR trên thẻ thành viên để điểm danh tự động.</p>
+        <div id="qr-reader" style="width:100%;border-radius:12px;overflow:hidden"></div>
+        <div id="qrScanResult" style="margin-top:12px;padding:10px;border-radius:8px;display:none;font-weight:600;text-align:center"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Member Card Print Modal ────────────────────────────────────── -->
+  <div class="modal-overlay" id="memberCardModal" style="display:none">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header">
+        <h2 class="modal-title">🪪 In thẻ thành viên</h2>
+        <button class="modal-close" id="closeMemberCardBtn">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;align-items:center;gap:16px">
+        <div id="memberCardPreview"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" id="closeMemberCardBtn2">Đóng</button>
+          <button class="btn btn-primary" id="printMemberCardBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            In thẻ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bulk Email Modal ───────────────────────────────────────────── -->
+  <div class="modal-overlay" id="bulkEmailModal" style="display:none">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header">
+        <h2 class="modal-title">✉️ Gửi email hàng loạt</h2>
+        <button class="modal-close" id="closeBulkEmailBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Đối tượng nhận</label>
+          <select class="form-select" id="bulkEmailTarget">
+            <option value="all">Tất cả thành viên (có email)</option>
+            <option value="absent3">Vắng ≥ 3 buổi</option>
+            <option value="absent5">Vắng ≥ 5 buổi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tiêu đề email</label>
+          <input type="text" class="form-input" id="bulkEmailSubject" value="Thông báo từ CLB Tiếng Anh VKU" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nội dung email</label>
+          <textarea class="form-input" id="bulkEmailContent" rows="5" placeholder="Nhập nội dung email..."></textarea>
+        </div>
+        <div id="bulkEmailStatus" style="display:none;margin-top:8px;padding:10px;border-radius:8px;font-size:13px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancelBulkEmailBtn">Hủy</button>
+        <button class="btn btn-primary" id="confirmBulkEmailBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Gửi email
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <script src="js/api.js?v=3"></script>
+  <script src="js/utils.js?v=3"></script>
+  <script src="js/charts.js?v=3"></script>
+  <script src="js/members.js?v=3"></script>
+  <script src="js/sessions.js?v=3"></script>
+  <script src="js/attendance.js?v=3"></script>
+  <script src="js/dashboard.js?v=3"></script>
+  <script src="js/reports.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>
