@@ -61,6 +61,14 @@
         </span>
         <span>Báo cáo</span>
       </a>
+
+      <div class="nav-section-label">Tài chính</div>
+      <a href="#" class="nav-item" data-page="finance" id="nav-finance">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </span>
+        <span>Quản lý Tài chính</span>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -397,6 +405,108 @@
         </div>
       </section>
 
+      <!-- ══ FINANCE PAGE ═══════════════════════════════════════════════ -->
+      <section class="page" id="page-finance">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Quản lý Tài chính</h1>
+            <p class="page-subtitle">Theo dõi thu chi và quỹ thành viên CLB</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" id="addTransactionBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Thêm giao dịch
+            </button>
+          </div>
+        </div>
+
+        <!-- Finance Summary Cards -->
+        <div class="stats-grid" style="margin-bottom:24px">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Tồn quỹ hiện tại</div>
+              <div class="stat-value" id="financeTotalFund">0 đ</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Tổng thu tháng này</div>
+              <div class="stat-value" id="financeMonthIncome">0 đ</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Tổng chi tháng này</div>
+              <div class="stat-value" id="financeMonthExpense">0 đ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Finance Tabs -->
+        <div class="tab-bar" style="margin-bottom:20px">
+          <button class="tab-btn active" id="tabTransactions" onclick="Finance.switchTab('transactions')">📒 Sổ Thu/Chi</button>
+          <button class="tab-btn" id="tabFunds" onclick="Finance.switchTab('funds')">💰 Quỹ Thành viên</button>
+        </div>
+
+        <!-- Tab: Transactions -->
+        <div id="financeTabTransactions">
+          <div class="table-wrapper">
+            <table class="data-table" id="transactionsTable">
+              <thead>
+                <tr>
+                  <th>Ngày</th>
+                  <th>Loại</th>
+                  <th>Danh mục</th>
+                  <th>Nội dung</th>
+                  <th style="text-align:right">Số tiền</th>
+                  <th style="text-align:center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsTableBody">
+                <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Chưa có giao dịch nào</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: Fund Collections -->
+        <div id="financeTabFunds" style="display:none">
+          <div class="page-actions" style="margin-bottom:16px;justify-content:flex-start;gap:12px;flex-wrap:wrap;align-items:center">
+            <label class="form-label" style="margin:0">Chọn tháng:</label>
+            <select class="form-select" id="fundMonthSelect" style="width:auto;min-width:160px" onchange="Finance.loadFunds()">
+            </select>
+            <span id="fundSummaryBadge" style="font-size:13px;color:var(--text-muted)"></span>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="fundsTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Họ và Tên</th>
+                  <th>MSSV</th>
+                  <th>Lớp</th>
+                  <th style="text-align:center">Trạng thái</th>
+                  <th style="text-align:center">Số tiền</th>
+                  <th style="text-align:center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="fundsTableBody">
+                <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Đang tải...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -630,6 +740,58 @@
     </div>
   </div>
 
+  <!-- ── Transaction Modal ────────────────────────────────────────── -->
+  <div class="modal-overlay" id="transactionModal">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-header">
+        <h2 class="modal-title" id="transactionModalTitle">💳 Thêm giao dịch</h2>
+        <button class="modal-close" id="closeTransactionModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="transactionForm">
+          <input type="hidden" id="transactionFormId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label required">Loại giao dịch</label>
+              <select class="form-select" id="transactionFormType">
+                <option value="income">Thu tiền</option>
+                <option value="expense">Chi tiền</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label required">Danh mục</label>
+              <select class="form-select" id="transactionFormCategory">
+                <option value="Quỹ">Quỹ</option>
+                <option value="Sự kiện">Sự kiện</option>
+                <option value="Sinh hoạt">Sinh hoạt</option>
+                <option value="Tài trợ">Tài trợ</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label required">Số tiền (đ)</label>
+              <input type="number" class="form-input" id="transactionFormAmount" placeholder="VD: 50000" min="0" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label required">Ngày</label>
+              <input type="date" class="form-input" id="transactionFormDate" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Nội dung</label>
+            <input type="text" class="form-input" id="transactionFormDesc" placeholder="Mô tả giao dịch..." required />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancelTransactionBtn">Hủy</button>
+        <button class="btn btn-primary" id="saveTransactionBtn">Lưu giao dịch</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CDN Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -643,6 +805,7 @@
   <script src="js/attendance.js?v=4"></script>
   <script src="js/dashboard.js?v=4"></script>
   <script src="js/reports.js?v=4"></script>
+  <script src="js/finance.js?v=1"></script>
   <script src="js/app.js?v=4"></script>
 </body>
 </html>

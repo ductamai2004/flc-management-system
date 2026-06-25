@@ -45,8 +45,37 @@ const attendanceSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+// Transaction Schema (Quản lý Thu/Chi chung)
+const transactionSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  type: { type: String, enum: ['income', 'expense'], required: true },
+  amount: { type: Number, required: true },
+  date: { type: String, required: true }, // YYYY-MM-DD
+  description: { type: String, required: true },
+  category: { type: String, default: 'Khác' },
+  createdAt: { type: String, default: () => new Date().toISOString() }
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// FundCollection Schema (Quản lý thu quỹ thành viên)
+const fundCollectionSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  memberId: { type: String, required: true },
+  month: { type: String, required: true }, // YYYY-MM
+  amount: { type: Number, required: true, default: 20000 },
+  transactionId: { type: String, default: '' }, // Link to the generated Transaction
+  recordedAt: { type: String, default: () => new Date().toISOString() }
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
 const Member = mongoose.model('Member', memberSchema);
 const Session = mongoose.model('Session', sessionSchema);
 const Attendance = mongoose.model('Attendance', attendanceSchema);
+const Transaction = mongoose.model('Transaction', transactionSchema);
+const FundCollection = mongoose.model('FundCollection', fundCollectionSchema);
 
-module.exports = { Member, Session, Attendance };
+module.exports = { Member, Session, Attendance, Transaction, FundCollection };

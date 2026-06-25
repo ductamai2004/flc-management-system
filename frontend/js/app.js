@@ -67,13 +67,14 @@ const App = {
       attendance: 'Điểm danh',
       members: 'Thành viên',
       sessions: 'Buổi sinh hoạt',
-      reports: 'Báo cáo'
+      reports: 'Báo cáo',
+      finance: 'Quản lý Tài chính'
     };
     document.getElementById('topbarTitle').textContent = titles[page] || page;
 
     // Toggle export button
     const exportBtn = document.getElementById('exportBtn');
-    if (page === 'reports') {
+    if (page === 'reports' || page === 'finance') {
       exportBtn.style.display = 'none';
     } else {
       exportBtn.style.display = 'flex';
@@ -102,6 +103,9 @@ const App = {
         break;
       case 'reports':
         await Reports.load();
+        break;
+      case 'finance':
+        Finance.init();
         break;
     }
   }

@@ -8,7 +8,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mongoose = require('mongoose');
-const { Member, Session, Attendance } = require('./models');
+const { Member, Session, Attendance, Transaction, FundCollection } = require('./models');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -301,12 +301,97 @@ app.post('/api/email/send-bulk', async (req, res) => {
   }
 });
 
+// ─── Finance ─────────────────────────────────────────────────────────────────
+app.get('/api/finance/transactions', async (req, res) => {
+  try {
+    const transactions = await Transaction.find().lean();
+    res.json({ success: true, data: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)) });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+app.post('/api/finance/transactions', async (req, res) => {
+  try {
+    const { type, amount, date, description, category } = req.body;
+    if (!type || !amount || !date || !description) return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
+    
+    const newTx = new Transaction({
+      id: uuidv4(), type, amount: Number(amount), date, description, category: category || 'Khác'
+    });
+    await newTx.save();
+    res.status(201).json({ success: true, data: newTx });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+app.delete('/api/finance/transactions/:id', async (req, res) => {
+  try {
+    const deleted = await Transaction.findOneAndDelete({ id: req.params.id });
+    if (!deleted) return res.status(404).json({ success: false, message: 'Không tìm thấy giao dịch' });
+    res.json({ success: true, message: 'Đã xóa giao dịch' });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+app.get('/api/finance/funds', async (req, res) => {
+  try {
+    const funds = await FundCollection.find().lean();
+    res.json({ success: true, data: funds });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+app.post('/api/finance/funds', async (req, res) => {
+  try {
+    const { memberId, month, amount } = req.body;
+    if (!memberId || !month) return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
+
+    const fundAmount = Number(amount) || 20000;
+    
+    const member = await Member.findOne({ id: memberId }).lean();
+    const memberName = member ? member.name : 'Thành viên';
+    
+    // Tự động tạo 1 Transaction Thu
+    const newTx = new Transaction({
+      id: uuidv4(),
+      type: 'income',
+      amount: fundAmount,
+      date: new Date().toISOString().split('T')[0],
+      description: `Thu quỹ tháng ${month} - ${memberName}`,
+      category: 'Quỹ'
+    });
+    await newTx.save();
+
+    const record = new FundCollection({
+      id: uuidv4(),
+      memberId,
+      month,
+      amount: fundAmount,
+      transactionId: newTx.id
+    });
+    await record.save();
+
+    res.status(201).json({ success: true, data: record });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+app.delete('/api/finance/funds/:id', async (req, res) => {
+  try {
+    const record = await FundCollection.findOneAndDelete({ id: req.params.id });
+    if (!record) return res.status(404).json({ success: false, message: 'Không tìm thấy bản ghi nộp quỹ' });
+    
+    // Xóa luôn transaction liên kết
+    if (record.transactionId) {
+      await Transaction.findOneAndDelete({ id: record.transactionId });
+    }
+    
+    res.json({ success: true, message: 'Đã hủy nộp quỹ' });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────
 app.get('/api/stats', async (req, res) => {
   try {
     const members = await Member.find().lean();
     const sessions = await Session.find().lean();
     const attendance = await Attendance.find().lean();
+    const transactions = await Transaction.find().lean();
 
     const totalMembers = members.filter(m => m.active).length;
     const totalSessions = sessions.length;
@@ -330,6 +415,23 @@ app.get('/api/stats', async (req, res) => {
       return { sessionId: session.id, name: session.name, date: session.date, present, absent: total - present, total, rate: total > 0 ? Math.round((present / total) * 100) : 0 };
     });
 
+    // Tính toán tài chính
+    let totalFund = 0;
+    let currentMonthIncome = 0;
+    let currentMonthExpense = 0;
+    
+    const currentMonthPrefix = new Date().toISOString().substring(0, 7); // YYYY-MM
+    
+    transactions.forEach(tx => {
+      if (tx.type === 'income') {
+        totalFund += tx.amount;
+        if (tx.date.startsWith(currentMonthPrefix)) currentMonthIncome += tx.amount;
+      } else if (tx.type === 'expense') {
+        totalFund -= tx.amount;
+        if (tx.date.startsWith(currentMonthPrefix)) currentMonthExpense += tx.amount;
+      }
+    });
+
     res.json({
       success: true,
       data: {
@@ -338,7 +440,12 @@ app.get('/api/stats', async (req, res) => {
         overallRate,
         presentTotal: presentRecords,
         memberStats: memberStats.sort((a, b) => b.rate - a.rate),
-        sessionStats: sessionStats.sort((a, b) => new Date(b.date) - new Date(a.date))
+        sessionStats: sessionStats.sort((a, b) => new Date(b.date) - new Date(a.date)),
+        finance: {
+          totalFund,
+          currentMonthIncome,
+          currentMonthExpense
+        }
       }
     });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
