@@ -314,9 +314,9 @@ const Members = {
     const opt = {
       margin:       0,
       filename:     `The_Thanh_Vien_${safeName}.pdf`,
-      image:        { type: 'png', quality: 1 },
-      html2canvas:  { scale: 3, useCORS: true, backgroundColor: '#f8f9fa', logging: false },
-      jsPDF:        { unit: 'mm', format: [90, 150], orientation: 'portrait' }
+      image:        { type: 'jpeg', quality: 1 },
+      html2canvas:  { scale: 3, useCORS: true, backgroundColor: '#f8f9fa' },
+      jsPDF:        { unit: 'px', format: [312, 480], orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
