@@ -49,6 +49,19 @@ const upload = multer({ storage, fileFilter: (req, file, cb) => {
 // API ROUTES
 // ═══════════════════════════════════════════════════════════════════════════════
 
+function processAvatarUrl(url) {
+  if (!url) return '';
+  let avatar = String(url).trim();
+  if (avatar.includes('drive.google.com/file/d/')) {
+    const match = avatar.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  } else if (avatar.includes('drive.google.com/open?id=')) {
+    const match = avatar.match(/id=([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  }
+  return avatar;
+}
+
 // ─── Members ─────────────────────────────────────────────────────────────────
 app.get('/api/members', async (req, res) => {
   try {
@@ -83,7 +96,7 @@ app.post('/api/members', async (req, res) => {
       lop: lop || '',
       dob: dob || '',
       facebook: facebook || '',
-      avatar: avatar || '',
+      avatar: processAvatarUrl(avatar),
       active: true
     });
     await newMember.save();
@@ -93,7 +106,10 @@ app.post('/api/members', async (req, res) => {
 
 app.put('/api/members/:id', async (req, res) => {
   try {
-    const updated = await Member.findOneAndUpdate({ id: req.params.id }, req.body, { new: true }).lean();
+    const updateData = { ...req.body };
+    if (updateData.avatar) updateData.avatar = processAvatarUrl(updateData.avatar);
+    
+    const updated = await Member.findOneAndUpdate({ id: req.params.id }, updateData, { new: true }).lean();
     if (!updated) return res.status(404).json({ success: false, message: 'Member not found' });
     res.json({ success: true, data: updated });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -539,7 +555,7 @@ app.post('/api/import', upload.single('file'), async (req, res) => {
       const email = colMap.email !== undefined && row[colMap.email] ? String(row[colMap.email]).trim() : '';
       const phone = colMap.phone !== undefined && row[colMap.phone] ? String(row[colMap.phone]).trim() : '';
       const facebook = colMap.facebook !== undefined && row[colMap.facebook] ? String(row[colMap.facebook]).trim() : '';
-      const avatar = colMap.avatar !== undefined && row[colMap.avatar] ? String(row[colMap.avatar]).trim() : '';
+      const avatar = colMap.avatar !== undefined && row[colMap.avatar] ? processAvatarUrl(row[colMap.avatar]) : '';
 
       // Find member case insensitive
       let member = await Member.findOne({ name: { $regex: new RegExp(`^${trimmedName}$`, 'i') } });
