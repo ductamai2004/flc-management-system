@@ -19,7 +19,7 @@ const Sessions = {
       this.render();
     } catch (err) {
       console.error('Sessions load error:', err);
-      Toast.error('Không thể tải danh sách buổi học');
+      Toast.error('Không thể tải danh sách buổi sinh hoạt');
     }
   },
 
@@ -34,8 +34,8 @@ const Sessions = {
               <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
           </div>
-          <h3>Chưa có buổi học nào</h3>
-          <p>Nhấn "Thêm buổi học" để tạo buổi học đầu tiên</p>
+          <h3>Chưa có buổi sinh hoạt nào</h3>
+          <p>Nhấn "Thêm buổi sinh hoạt" để tạo buổi sinh hoạt đầu tiên</p>
         </div>
       `;
       return;
@@ -103,7 +103,7 @@ const Sessions = {
 
   openAdd() {
     this._editId = null;
-    document.getElementById('sessionModalTitle').textContent = 'Thêm buổi học mới';
+    document.getElementById('sessionModalTitle').textContent = 'Thêm buổi sinh hoạt mới';
     document.getElementById('sessionFormId').value = '';
     document.getElementById('sessionFormName').value = '';
     document.getElementById('sessionFormDate').value = new Date().toISOString().split('T')[0];
@@ -115,7 +115,7 @@ const Sessions = {
     this._editId = id;
     const session = this._sessions.find(s => s.id === id);
     if (!session) return;
-    document.getElementById('sessionModalTitle').textContent = 'Chỉnh sửa buổi học';
+    document.getElementById('sessionModalTitle').textContent = 'Chỉnh sửa buổi sinh hoạt';
     document.getElementById('sessionFormId').value = session.id;
     document.getElementById('sessionFormName').value = session.name;
     document.getElementById('sessionFormDate').value = session.date;
@@ -136,10 +136,10 @@ const Sessions = {
 
       if (this._editId) {
         await Api.put(`/sessions/${this._editId}`, data);
-        Toast.success('Đã cập nhật buổi học');
+        Toast.success('Đã cập nhật buổi sinh hoạt');
       } else {
         await Api.post('/sessions', data);
-        Toast.success('Đã thêm buổi học mới');
+        Toast.success('Đã thêm buổi sinh hoạt mới');
       }
 
       closeModal('sessionModal');
@@ -148,18 +148,18 @@ const Sessions = {
     } catch (err) {
       Toast.error('Lỗi: ' + err.message);
     } finally {
-      btn.disabled = false; btn.textContent = 'Lưu buổi học';
+      btn.disabled = false; btn.textContent = 'Lưu buổi sinh hoạt';
     }
   },
 
   async delete(id) {
     const session = this._sessions.find(s => s.id === id);
-    const confirmed = await Confirm.show(`Xóa buổi học "${session?.name}"? Dữ liệu điểm danh liên quan cũng sẽ bị xóa.`, 'Xóa buổi học');
+    const confirmed = await Confirm.show(`Xóa buổi sinh hoạt "${session?.name}"? Dữ liệu điểm danh liên quan cũng sẽ bị xóa.`, 'Xóa buổi sinh hoạt');
     if (!confirmed) return;
 
     try {
       await Api.delete(`/sessions/${id}`);
-      Toast.success('Đã xóa buổi học');
+      Toast.success('Đã xóa buổi sinh hoạt');
       await this.load();
       Attendance.loadSessions();
     } catch (err) {

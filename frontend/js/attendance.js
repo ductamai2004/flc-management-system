@@ -13,7 +13,7 @@ const Attendance = {
       this._sessions = res.data;
       const select = document.getElementById('attendanceSessionSelect');
       const current = select.value;
-      select.innerHTML = '<option value="">-- Chọn buổi học --</option>' +
+      select.innerHTML = '<option value="">-- Chọn buổi sinh hoạt --</option>' +
         this._sessions.map(s => `<option value="${s.id}" ${s.id === current ? 'selected' : ''}>${s.name} · ${formatDate(s.date)}</option>`).join('');
     } catch (err) {
       console.error('Load sessions error:', err);

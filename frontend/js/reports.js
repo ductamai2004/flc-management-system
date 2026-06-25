@@ -65,14 +65,14 @@ const Reports = {
       <!-- By Session -->
       <div class="report-card">
         <div class="card-header">
-          <h3 class="card-title">Thống kê theo buổi học</h3>
+          <h3 class="card-title">Thống kê theo buổi sinh hoạt</h3>
           <span class="badge badge--gray">${s.sessionStats.length} buổi</span>
         </div>
         <div class="table-wrapper">
           <table class="report-table">
             <thead>
               <tr>
-                <th>Buổi học</th>
+                <th>Buổi sinh hoạt</th>
                 <th>Ngày</th>
                 <th>Có mặt</th>
                 <th>Vắng</th>
@@ -112,7 +112,7 @@ const Reports = {
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; padding: 0;">
           ${[
             { label: 'Tổng thành viên', value: s.totalMembers, color: 'var(--purple-light)', icon: '👥' },
-            { label: 'Tổng buổi học', value: s.totalSessions, color: 'var(--blue-light)', icon: '📅' },
+            { label: 'Tổng buổi sinh hoạt', value: s.totalSessions, color: 'var(--blue-light)', icon: '📅' },
             { label: 'Tỉ lệ chuyên cần', value: s.overallRate + '%', color: 'var(--green-light)', icon: '📊' }
           ].map(item => `
             <div style="padding: 24px; text-align: center; border-right: 1px solid var(--border);">

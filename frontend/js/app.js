@@ -66,7 +66,7 @@ const App = {
       dashboard: 'Dashboard',
       attendance: 'Điểm danh',
       members: 'Thành viên',
-      sessions: 'Buổi học',
+      sessions: 'Buổi sinh hoạt',
       reports: 'Báo cáo'
     };
     document.getElementById('topbarTitle').textContent = titles[page] || page;

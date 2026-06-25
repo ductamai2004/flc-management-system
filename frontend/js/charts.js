@@ -6,7 +6,7 @@ const Charts = {
     if (!container) return;
 
     if (!stats || stats.length === 0) {
-      container.innerHTML = '<div class="chart-loading">Chưa có dữ liệu buổi học</div>';
+      container.innerHTML = '<div class="chart-loading">Chưa có dữ liệu buổi sinh hoạt</div>';
       return;
     }
 

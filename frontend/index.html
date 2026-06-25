@@ -51,7 +51,7 @@
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </span>
-        <span>Buổi học</span>
+        <span>Buổi sinh hoạt</span>
       </a>
 
       <div class="nav-section-label">Báo cáo</div>
@@ -121,7 +121,7 @@
             </div>
             <div class="stat-content">
               <div class="stat-value" id="stat-sessions">—</div>
-              <div class="stat-label">Buổi học</div>
+              <div class="stat-label">Buổi sinh hoạt</div>
             </div>
           </div>
 
@@ -151,7 +151,7 @@
           <!-- Attendance by session chart -->
           <div class="card chart-card">
             <div class="card-header">
-              <h3 class="card-title">Điểm danh theo buổi học</h3>
+              <h3 class="card-title">Điểm danh theo buổi sinh hoạt</h3>
             </div>
             <div class="chart-container" id="sessionChart">
               <div class="chart-loading">Đang tải dữ liệu...</div>
@@ -210,7 +210,7 @@
         <div class="page-header">
           <div>
             <h1 class="page-title">Điểm danh</h1>
-            <p class="page-subtitle">Ghi nhận điểm danh cho từng buổi học</p>
+            <p class="page-subtitle">Ghi nhận điểm danh cho từng buổi sinh hoạt</p>
           </div>
           <div class="page-actions">
             <button class="btn btn-primary" id="openAttendanceModal">
@@ -223,9 +223,9 @@
         <!-- Session Selector -->
         <div class="card session-selector-card">
           <div class="session-selector">
-            <label class="form-label">Chọn buổi học:</label>
+            <label class="form-label">Chọn buổi sinh hoạt:</label>
             <select class="form-select" id="attendanceSessionSelect">
-              <option value="">-- Chọn buổi học --</option>
+              <option value="">-- Chọn buổi sinh hoạt --</option>
             </select>
           </div>
         </div>
@@ -287,8 +287,8 @@
           <div class="empty-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
           </div>
-          <h3>Chọn buổi học để bắt đầu điểm danh</h3>
-          <p>Hoặc tạo buổi học mới trong mục Buổi học</p>
+          <h3>Chọn buổi sinh hoạt để bắt đầu điểm danh</h3>
+          <p>Hoặc tạo buổi sinh hoạt mới trong mục Buổi sinh hoạt</p>
         </div>
       </section>
 
@@ -342,19 +342,19 @@
       <section class="page" id="page-sessions">
         <div class="page-header">
           <div>
-            <h1 class="page-title">Buổi học</h1>
-            <p class="page-subtitle">Quản lý lịch buổi học của CLB</p>
+            <h1 class="page-title">Buổi sinh hoạt</h1>
+            <p class="page-subtitle">Quản lý lịch buổi sinh hoạt của CLB</p>
           </div>
           <div class="page-actions">
             <button class="btn btn-primary" id="addSessionBtn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Thêm buổi học
+              Thêm buổi sinh hoạt
             </button>
           </div>
         </div>
 
         <div class="sessions-list" id="sessionsList">
-          <div class="loading-placeholder">Đang tải danh sách buổi học...</div>
+          <div class="loading-placeholder">Đang tải danh sách buổi sinh hoạt...</div>
         </div>
       </section>
 
@@ -457,7 +457,7 @@
   <div class="modal-overlay" id="sessionModal">
     <div class="modal">
       <div class="modal-header">
-        <h2 class="modal-title" id="sessionModalTitle">Thêm buổi học</h2>
+        <h2 class="modal-title" id="sessionModalTitle">Thêm buổi sinh hoạt</h2>
         <button class="modal-close" id="closeSessionModal">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -466,7 +466,7 @@
         <form id="sessionForm">
           <input type="hidden" id="sessionFormId" />
           <div class="form-group">
-            <label class="form-label required">Tên buổi học</label>
+            <label class="form-label required">Tên buổi sinh hoạt</label>
             <input type="text" class="form-input" id="sessionFormName" placeholder="VD: Buổi 1 - Tháng 3/2025" required />
           </div>
           <div class="form-group">
@@ -475,13 +475,13 @@
           </div>
           <div class="form-group">
             <label class="form-label">Chủ đề</label>
-            <input type="text" class="form-input" id="sessionFormTopic" placeholder="Chủ đề hoặc nội dung buổi học..." />
+            <input type="text" class="form-input" id="sessionFormTopic" placeholder="Chủ đề hoặc nội dung buổi sinh hoạt..." />
           </div>
         </form>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" id="cancelSessionModal">Hủy</button>
-        <button class="btn btn-primary" id="saveSessionBtn">Lưu buổi học</button>
+        <button class="btn btn-primary" id="saveSessionBtn">Lưu buổi sinh hoạt</button>
       </div>
     </div>
   </div>

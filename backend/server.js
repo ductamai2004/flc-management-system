@@ -430,7 +430,7 @@ app.get('/api/export', async (req, res) => {
     };
 
     const getSessionsData = () => {
-      const headers = ['STT', 'Buổi học', 'Ngày', 'Nội dung buổi học', 'Số lượng có mặt', 'Số lượng vắng', 'Tỉ lệ có mặt (%)'];
+      const headers = ['STT', 'Buổi sinh hoạt', 'Ngày', 'Nội dung buổi sinh hoạt', 'Số lượng có mặt', 'Số lượng vắng', 'Tỉ lệ có mặt (%)'];
       const rows = sessions.map((session, idx) => {
         const sa = attendance.filter(a => a.sessionId === session.id);
         const present = sa.filter(a => a.status === 'present').length;
@@ -464,14 +464,14 @@ app.get('/api/export', async (req, res) => {
     if (type === 'reports') {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getAttendanceData()), 'Điểm danh');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getMembersData()), 'Thành viên');
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getSessionsData()), 'Buổi học');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getSessionsData()), 'Buổi sinh hoạt');
       fileName = 'FLC_Bao_Cao_Tong_Hop.xlsx';
     } else if (type === 'members') {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getMembersData()), 'Thành viên');
       fileName = 'FLC_Thanh_Vien.xlsx';
     } else if (type === 'sessions') {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getSessionsData()), 'Buổi học');
-      fileName = 'FLC_Buoi_Hoc.xlsx';
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getSessionsData()), 'Buổi sinh hoạt');
+      fileName = 'FLC_Buoi_Sinh_Hoat.xlsx';
     } else {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getAttendanceData()), 'Điểm danh');
       fileName = 'FLC_Diem_Danh.xlsx';
