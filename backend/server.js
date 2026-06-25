@@ -6,7 +6,7 @@ const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 const mongoose = require('mongoose');
 const { Member, Session, Attendance } = require('./models');
 
@@ -227,16 +227,15 @@ app.post('/api/email/send-warning', async (req, res) => {
     const gasUrl = 'https://script.google.com/macros/s/AKfycbzVkpiW5xfUjB31muPV6dIOFyWqsOhvrdlnVZUjUT359XDBY5kp-5KnEvRBhb6wvBBK/exec';
     
     // Call Google Apps Script Web App
-    const response = await fetch(gasUrl, {
-      method: 'POST',
-      body: JSON.stringify({
-        to: email,
-        subject: 'Nhắc nhở tham gia sinh hoạt CLB Tiếng Anh VKU',
-        html: htmlBody
-      })
+    const response = await axios.post(gasUrl, {
+      to: email,
+      subject: 'Nhắc nhở tham gia sinh hoạt CLB Tiếng Anh VKU',
+      html: htmlBody
+    }, {
+      headers: { 'Content-Type': 'application/json' }
     });
 
-    const result = await response.json();
+    const result = response.data;
     
     if (result.success) {
       res.json({ success: true, message: 'Đã gửi email thành công qua Apps Script' });
@@ -281,18 +280,17 @@ app.post('/api/email/send-bulk', async (req, res) => {
       `;
 
       try {
-        const response = await fetch(gasUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            to: member.email,
-            subject: subject,
-            html: personalizedHtml
-          })
+        const response = await axios.post(gasUrl, {
+          to: member.email,
+          subject: subject,
+          html: personalizedHtml
+        }, {
+          headers: { 'Content-Type': 'application/json' }
         });
-        const result = await response.json();
+        const result = response.data;
         if (result.success) sentCount++;
       } catch (e) {
-        console.error('Lỗi gửi email cho', member.email, e);
+        console.error('Lỗi gửi email cho', member.email, e.message);
       }
     }
 

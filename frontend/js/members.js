@@ -273,18 +273,15 @@ const Members = {
         </div>
       </div>
       <style>
-        @media print {
-          body * { visibility: hidden; }
-          #memberCardModal .modal-body, #memberCardModal .modal-body * { visibility: visible; }
-          #memberCardModal .modal-body { position: absolute; left: 0; top: 0; }
-          #closeMemberCardBtn, #closeMemberCardBtn2, #printMemberCardBtn { display: none; }
-          #printCardWrapper { box-shadow: none !important; border: 1px solid #000 !important; }
-        }
+        #printCardWrapper { box-shadow: none !important; border: 1px solid #000 !important; }
       </style>
     `;
 
     document.getElementById('memberCardPreview').innerHTML = cardHtml;
     openModal('memberCardModal');
+    
+    // Store current member for PDF generation
+    this._currentPrintMember = member;
 
     // Generate QR Code
     setTimeout(() => {
@@ -297,6 +294,37 @@ const Members = {
         correctLevel : QRCode.CorrectLevel.M
       });
     }, 100);
+  },
+
+  downloadCardPdf() {
+    if (!this._currentPrintMember) return;
+    const element = document.getElementById('printCardWrapper');
+    
+    const btn = document.getElementById('printMemberCardBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = 'Đang tải PDF...';
+
+    const safeName = this._currentPrintMember.name.replace(/[^a-zA-Z0-9]/g, '_');
+    
+    const opt = {
+      margin:       [10, 10, 10, 10],
+      filename:     `The_Thanh_Vien_${safeName}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'px', format: [300, 460], orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      closeModal('memberCardModal');
+      Toast.success('Đã tải xuống thẻ thành viên PDF');
+    }).catch(err => {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      Toast.error('Lỗi khi tạo PDF: ' + err.message);
+    });
   },
 
   openBulkEmail() {
@@ -381,7 +409,7 @@ document.getElementById('deleteAllMembersBtn').addEventListener('click', () => M
 
 document.getElementById('closeMemberCardBtn').addEventListener('click', () => closeModal('memberCardModal'));
 document.getElementById('closeMemberCardBtn2').addEventListener('click', () => closeModal('memberCardModal'));
-document.getElementById('printMemberCardBtn').addEventListener('click', () => window.print());
+document.getElementById('printMemberCardBtn').addEventListener('click', () => Members.downloadCardPdf());
 
 document.getElementById('bulkEmailBtn').addEventListener('click', () => Members.openBulkEmail());
 document.getElementById('closeBulkEmailBtn').addEventListener('click', () => closeModal('bulkEmailModal'));
