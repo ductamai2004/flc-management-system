@@ -243,7 +243,7 @@ const Members = {
   printCard(id) {
     const member = this._members.find(m => m.id === id);
     if (!member) return;
-    
+
     let roleLabel = 'Thành viên';
     if (member.role === 'leader' || member.role === 'Chủ nhiệm') roleLabel = 'Chủ nhiệm';
     else if (member.role === 'Phó Chủ nhiệm') roleLabel = 'Phó Chủ nhiệm';
@@ -252,30 +252,28 @@ const Members = {
     else if (member.role === 'Ban Truyền thông - Đối ngoại') roleLabel = 'Ban Truyền thông';
 
     const cardHtml = `
-      <div id="printCardOuter" style="padding: 16px; background: #f8f9fa; display: inline-block;">
-        <div id="printCardWrapper" style="width: 280px; border-radius: 16px; background: white; border: 2px solid #e2e8f0; display: flex; flex-direction: column; font-family: Arial, sans-serif; overflow: hidden;">
-          <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 24px 20px 20px; text-align: center; color: white;">
-            <div style="font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; margin-bottom: 4px;">CLB TIẾNG ANH</div>
-            <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px;">VKU FLC</h2>
-            <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">English Club • Thẻ thành viên</div>
+      <div id="printCardOuter" style="padding:16px;background:#f8f9fa;display:inline-block;">
+        <div id="printCardWrapper" style="width:280px;border-radius:16px;background:white;border:2px solid #e2e8f0;display:flex;flex-direction:column;font-family:Arial,Helvetica,sans-serif;overflow:hidden;">
+          <div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:22px 20px 18px;text-align:center;color:white;">
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.85;margin-bottom:4px;font-family:Arial,Helvetica,sans-serif;">CLB TIẾNG ANH VKU</div>
+            <div style="margin:0;font-size:14px;font-weight:900;letter-spacing:0.5px;font-family:Arial,Helvetica,sans-serif;line-height:1.4;">VKU FOREIGN LANGUAGE CLUB</div>
+            <div style="font-size:11px;opacity:0.9;margin-top:6px;font-family:Arial,Helvetica,sans-serif;">Thẻ thành viên</div>
           </div>
-          <div style="padding: 24px 20px; display: flex; flex-direction: column; align-items: center;">
-            <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #ede9fe, #c4b5fd); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; margin-bottom: 12px; border: 3px solid #6366f1;">
+          <div style="padding:20px;display:flex;flex-direction:column;align-items:center;">
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#ede9fe,#c4b5fd);color:#6366f1;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;margin-bottom:12px;border:3px solid #6366f1;font-family:Arial,Helvetica,sans-serif;">
               ${getInitials(member.name)}
             </div>
-            <div style="font-size: 17px; font-weight: 800; color: #1e293b; text-align: center; margin-bottom: 4px;">${member.name}</div>
-            <div style="display: inline-block; font-size: 11px; color: white; font-weight: 700; background: #6366f1; padding: 3px 12px; border-radius: 20px; margin-bottom: 16px;">${roleLabel}</div>
-            
-            <div style="width: 100%; font-size: 12px; color: #475569; border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; flex-direction: column; gap: 5px;">
-              ${member.mssv ? `<div style="display:flex; justify-content:space-between;"><span style="color:#94a3b8;">MSSV</span><strong style="color:#1e293b;">${member.mssv}</strong></div>` : ''}
-              ${member.lop ? `<div style="display:flex; justify-content:space-between;"><span style="color:#94a3b8;">Lớp</span><strong style="color:#1e293b;">${member.lop}</strong></div>` : ''}
+            <div style="font-size:16px;font-weight:800;color:#1e293b;text-align:center;margin-bottom:6px;font-family:Arial,Helvetica,sans-serif;">${member.name}</div>
+            <div style="display:inline-block;font-size:11px;color:white;font-weight:700;background:#6366f1;padding:3px 12px;border-radius:20px;margin-bottom:14px;font-family:Arial,Helvetica,sans-serif;">${roleLabel}</div>
+            <div style="width:100%;font-size:12px;color:#475569;border-top:1px solid #f1f5f9;padding-top:12px;display:flex;flex-direction:column;gap:6px;font-family:Arial,Helvetica,sans-serif;">
+              ${member.mssv ? '<div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">MSSV</span><strong style="color:#1e293b;">' + member.mssv + '</strong></div>' : ''}
+              ${member.lop ? '<div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Lớp</span><strong style="color:#1e293b;">' + member.lop + '</strong></div>' : ''}
             </div>
-
-            <div style="margin-top: 16px; padding: 8px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: center;" id="qrcode-${member.id}"></div>
-            <div style="margin-top: 8px; font-size: 10px; color: #94a3b8; text-align: center;">Quét QR để điểm danh</div>
+            <div style="margin-top:14px;padding:8px;background:#f8f9fa;border-radius:8px;border:1px solid #e2e8f0;display:flex;justify-content:center;" id="qrcode-${member.id}"></div>
+            <div style="margin-top:6px;font-size:10px;color:#94a3b8;text-align:center;font-family:Arial,Helvetica,sans-serif;">Quét QR để điểm danh</div>
           </div>
-          <div style="background: #f8fafc; padding: 10px 16px; text-align: center; border-top: 1px solid #f1f5f9;">
-            <div style="font-size: 10px; color: #94a3b8; letter-spacing: 0.5px;">Trường Đại học Công nghệ Thông tin và Truyền thông Việt - Hàn</div>
+          <div style="background:#f8fafc;padding:9px 16px;text-align:center;border-top:1px solid #f1f5f9;">
+            <div style="font-size:9px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">ĐH Công nghệ TT &amp; TT Việt - Hàn (VKU)</div>
           </div>
         </div>
       </div>
@@ -283,22 +281,23 @@ const Members = {
 
     document.getElementById('memberCardPreview').innerHTML = cardHtml;
     openModal('memberCardModal');
-    
+
     // Store current member for PDF generation
     this._currentPrintMember = member;
 
-    // Generate QR Code
+    // Generate QR Code after render
     setTimeout(() => {
       new QRCode(document.getElementById(`qrcode-${member.id}`), {
         text: member.id,
         width: 80,
         height: 80,
-        colorDark : "#1e293b",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.M
+        colorDark: '#1e293b',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
       });
     }, 100);
   },
+
 
   downloadCardPdf() {
     if (!this._currentPrintMember) return;
