@@ -273,8 +273,8 @@ const Members = {
           <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px; background: rgb(255, 255, 255);">
             <!-- Avatar -->
             ${member.avatar ? 
-              `<img src="${member.avatar}" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; margin-top: 8px; margin-bottom: 10px; border: 4px solid rgb(99, 102, 241); box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />` : 
-              `<div style="width: 110px; height: 110px; border-radius: 50%; background: rgb(237, 233, 254); color: rgb(99, 102, 241); display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 800; margin-top: 8px; margin-bottom: 10px; border: 4px solid rgb(99, 102, 241); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+              `<img src="${member.avatar}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; margin-top: 8px; margin-bottom: 10px; border: 4px solid rgb(99, 102, 241); box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />` : 
+              `<div style="width: 140px; height: 140px; border-radius: 50%; background: rgb(237, 233, 254); color: rgb(99, 102, 241); display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; margin-top: 8px; margin-bottom: 10px; border: 4px solid rgb(99, 102, 241); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 ${getInitials(member.name)}
               </div>`
             }
