@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // finance.js — Quan ly Tai chinh (Thu, Chi, Quy thanh vien)
 // =============================================================================
 
@@ -40,7 +40,7 @@ const Finance = (() => {
     for (let i = 0; i < 12; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const label = `Thang ${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+      const label = `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`;
       const opt = document.createElement('option');
       opt.value = val;
       opt.textContent = label;
@@ -101,7 +101,7 @@ const Finance = (() => {
     const tbody = document.getElementById('transactionsTableBody');
     if (!tbody) return;
     if (!_transactions.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Chua co giao dich nao</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Chưa có giao dịch nào</td></tr>';
       return;
     }
     tbody.innerHTML = _transactions.map(tx => {
@@ -132,23 +132,40 @@ const Finance = (() => {
     const paidMemberIds = new Set(monthFunds.map(f => f.memberId));
     const paidCount = monthFunds.length;
     const totalCount = _members.length;
-    if (badge) badge.textContent = `Da nop: ${paidCount}/${totalCount} nguoi — Tong: ${formatCurrency(paidCount * DEFAULT_FUND_AMOUNT)}`;
+    if (badge) badge.textContent = `Đã nộp: ${paidCount}/${totalCount} người — Tổng: ${formatCurrency(paidCount * DEFAULT_FUND_AMOUNT)}`;
     if (!_members.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Chua co thanh vien nao</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Chưa có thành viên nào</td></tr>';
       return;
     }
     tbody.innerHTML = _members.map((member, idx) => {
       const isPaid = paidMemberIds.has(member.id);
       const fundRecord = monthFunds.find(f => f.memberId === member.id);
       const statusBadge = isPaid
-        ? '<span style="background:rgb(220,252,231);color:rgb(22,163,74);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">&#10003; Da nop</span>'
-        : '<span style="background:rgb(254,226,226);color:rgb(220,38,38);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">&#10007; Chua nop</span>';
+        ? '<span style="background:rgb(220,252,231);color:rgb(22,163,74);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">&#10003; Đã nộp</span>'
+        : '<span style="background:rgb(254,226,226);color:rgb(220,38,38);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">&#10007; Chưa nộp</span>';
       const actionBtn = isPaid
-        ? `<button class="btn btn-ghost btn-sm" onclick="Finance.cancelFund('${fundRecord.id}')" style="padding:4px 10px;font-size:12px;color:var(--text-muted)">Huy nop</button>`
-        : `<button class="btn btn-primary btn-sm" onclick="Finance.collectFund('${member.id}', '${month}')" style="padding:4px 10px;font-size:12px;">&#128176; Thu tien</button>`;
+        ? `<button class="btn btn-ghost btn-sm" onclick="Finance.cancelFund('${fundRecord.id}')" style="padding:4px 10px;font-size:12px;color:var(--text-muted)">Hủy nộp</button>`
+        : `<button class="btn btn-primary btn-sm" onclick="Finance.collectFund('${member.id}', '${month}')" style="padding:4px 10px;font-size:12px;">&#128176; Thu tiền</button>`;
       const amountText = isPaid
         ? `<span style="font-weight:700;color:rgb(22,163,74)">${formatCurrency(fundRecord.amount)}</span>`
         : `<span style="color:var(--text-muted)">${formatCurrency(DEFAULT_FUND_AMOUNT)}</span>`;
+      
+      let proofCell = '';
+      if (isPaid && fundRecord) {
+        if (fundRecord.proofImage) {
+          proofCell = `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <img src="${fundRecord.proofImage}" alt="Minh chứng" style="width:52px;height:52px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid rgb(99,102,241)" onclick="Finance.viewProof('${fundRecord.id}')" />
+            <button class="btn btn-ghost btn-sm" onclick="Finance.triggerProofUpload('${fundRecord.id}')" style="padding:2px 8px;font-size:11px">&#128247; Thăm</button>
+          </div>`;
+        } else {
+          proofCell = `<div style="display:flex;justify-content:center">
+            <button class="btn btn-ghost btn-sm" onclick="Finance.triggerProofUpload('${fundRecord.id}')" style="padding:4px 10px;font-size:12px;border:1px dashed var(--border-color)">&#128247; Upload</button>
+          </div>`;
+        }
+      } else {
+        proofCell = `<span style="color:var(--text-muted);font-size:12px">—</span>`;
+      }
+
       return `<tr>
         <td>${idx + 1}</td>
         <td style="font-weight:600">${member.name}</td>
@@ -156,6 +173,7 @@ const Finance = (() => {
         <td style="color:var(--text-muted)">${member.lop || '—'}</td>
         <td style="text-align:center">${statusBadge}</td>
         <td style="text-align:center">${amountText}</td>
+        <td style="text-align:center">${proofCell}</td>
         <td style="text-align:center">${actionBtn}</td>
       </tr>`;
     }).join('');
@@ -192,7 +210,7 @@ const Finance = (() => {
       });
       const json = await res.json();
       if (json.success) {
-        if (typeof showToast === 'function') showToast('Da ghi nhan nop quy!', 'success');
+        if (typeof showToast === 'function') showToast('Đã ghi nhận nộp quỹ!', 'success');
         await Promise.all([loadFunds(), loadTransactions(), loadSummary()]);
       } else {
         if (typeof showToast === 'function') showToast(json.message, 'error');
@@ -201,12 +219,12 @@ const Finance = (() => {
   }
 
   async function cancelFund(fundId) {
-    if (!confirm('Huy ghi nhan nop quy cua thanh vien nay?')) return;
+    if (!confirm('Hủy ghi nhận nộp quỹ của thành viên này?')) return;
     try {
       const res = await fetch(`/api/finance/funds/${fundId}`, { method: 'DELETE' });
       const json = await res.json();
       if (json.success) {
-        if (typeof showToast === 'function') showToast('Da huy nop quy', 'success');
+        if (typeof showToast === 'function') showToast('Đã hủy nộp quỹ', 'success');
         await Promise.all([loadFunds(), loadTransactions(), loadSummary()]);
       } else {
         if (typeof showToast === 'function') showToast(json.message, 'error');
@@ -215,12 +233,12 @@ const Finance = (() => {
   }
 
   async function deleteTransaction(txId) {
-    if (!confirm('Xoa giao dich nay? Thao tac khong the hoan tac.')) return;
+    if (!confirm('Xóa giao dịch này? Thao tác không thể hoàn tác.')) return;
     try {
       const res = await fetch(`/api/finance/transactions/${txId}`, { method: 'DELETE' });
       const json = await res.json();
       if (json.success) {
-        if (typeof showToast === 'function') showToast('Da xoa giao dich', 'success');
+        if (typeof showToast === 'function') showToast('Đã xóa giao dịch', 'success');
         await Promise.all([loadTransactions(), loadSummary()]);
       } else {
         if (typeof showToast === 'function') showToast(json.message, 'error');
@@ -235,12 +253,12 @@ const Finance = (() => {
     const date = document.getElementById('transactionFormDate').value;
     const description = document.getElementById('transactionFormDesc').value.trim();
     if (!amount || !date || !description) {
-      if (typeof showToast === 'function') showToast('Vui long dien day du thong tin', 'warning');
+      if (typeof showToast === 'function') showToast('Vui lòng điền đầy đủ thông tin', 'warning');
       return;
     }
     const btn = document.getElementById('saveTransactionBtn');
     btn.disabled = true;
-    btn.textContent = 'Dang luu...';
+    btn.textContent = 'Đang lưu...';
     try {
       const res = await fetch('/api/finance/transactions', {
         method: 'POST',
@@ -249,7 +267,7 @@ const Finance = (() => {
       });
       const json = await res.json();
       if (json.success) {
-        if (typeof showToast === 'function') showToast('Da them giao dich!', 'success');
+        if (typeof showToast === 'function') showToast('Đã thêm giao dịch!', 'success');
         closeModal('transactionModal');
         await Promise.all([loadTransactions(), loadSummary()]);
       } else {
@@ -259,17 +277,85 @@ const Finance = (() => {
       console.error(e);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Luu giao dich';
+      btn.textContent = 'Lưu giao dịch';
     }
   }
 
   function openTransactionModal() {
     document.getElementById('transactionFormType').value = 'expense';
-    document.getElementById('transactionFormCategory').value = 'Khac';
+    document.getElementById('transactionFormCategory').value = 'Khác';
     document.getElementById('transactionFormAmount').value = '';
     document.getElementById('transactionFormDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('transactionFormDesc').value = '';
     openModal('transactionModal');
+  }
+
+  // ── Proof Image ─────────────────────────────────────────────────────────
+  let _pendingProofFundId = null;
+
+  function triggerProofUpload(fundId) {
+    _pendingProofFundId = fundId;
+    // Create or reuse a hidden file input
+    let fileInput = document.getElementById('_proofFileInput');
+    if (!fileInput) {
+      fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.id = '_proofFileInput';
+      fileInput.accept = 'image/*';
+      fileInput.style.display = 'none';
+      fileInput.addEventListener('change', onProofFileSelected);
+      document.body.appendChild(fileInput);
+    }
+    fileInput.value = ''; // reset so same file can be re-selected
+    fileInput.click();
+  }
+
+  async function onProofFileSelected(e) {
+    const file = e.target.files[0];
+    if (!file || !_pendingProofFundId) return;
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const base64 = evt.target.result; // data:image/...;base64,...
+      try {
+        const res = await fetch(`/api/finance/funds/${_pendingProofFundId}/proof`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proofImage: base64 })
+        });
+        const json = await res.json();
+        if (json.success) {
+          if (typeof showToast === 'function') showToast('Đã lưu ảnh minh chứng!', 'success');
+          await loadFunds();
+        } else {
+          if (typeof showToast === 'function') showToast(json.message || 'Lỗi lưu ảnh', 'error');
+        }
+      } catch (err) {
+        if (typeof showToast === 'function') showToast('Lỗi kết nối', 'error');
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function viewProof(fundId) {
+    const record = _funds.find(f => f.id === fundId);
+    if (!record || !record.proofImage) return;
+    // Open image in a lightbox overlay
+    let overlay = document.getElementById('_proofOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = '_proofOverlay';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:zoom-out';
+      overlay.addEventListener('click', () => { overlay.style.display = 'none'; });
+      const img = document.createElement('img');
+      img.id = '_proofImg';
+      img.style.cssText = 'max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,0.6)';
+      overlay.appendChild(img);
+      document.body.appendChild(overlay);
+    }
+    document.getElementById('_proofImg').src = record.proofImage;
+    overlay.style.display = 'flex';
   }
 
   function init() {
@@ -287,5 +373,5 @@ const Finance = (() => {
     switchTab('transactions');
   }
 
-  return { init, switchTab, loadFunds, collectFund, cancelFund, deleteTransaction };
+  return { init, switchTab, loadFunds, collectFund, cancelFund, deleteTransaction, triggerProofUpload, viewProof };
 })();

@@ -66,6 +66,7 @@ const fundCollectionSchema = new mongoose.Schema({
   month: { type: String, required: true }, // YYYY-MM
   amount: { type: Number, required: true, default: 20000 },
   transactionId: { type: String, default: '' }, // Link to the generated Transaction
+  proofImage: { type: String, default: '' },    // Base64 data URL of proof image
   recordedAt: { type: String, default: () => new Date().toISOString() }
 }, {
   toJSON: { virtuals: true },

@@ -385,6 +385,22 @@ app.delete('/api/finance/funds/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
+app.patch('/api/finance/funds/:id/proof', async (req, res) => {
+  try {
+    const { proofImage } = req.body;
+    if (!proofImage) return res.status(400).json({ success: false, message: 'Missing proofImage' });
+    
+    const record = await FundCollection.findOneAndUpdate(
+      { id: req.params.id },
+      { proofImage },
+      { new: true }
+    );
+    if (!record) return res.status(404).json({ success: false, message: 'Không tìm thấy bản ghi nộp quỹ' });
+    
+    res.json({ success: true, data: record });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────
 app.get('/api/stats', async (req, res) => {
   try {
