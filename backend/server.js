@@ -8,6 +8,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const { Member, Session, Attendance, Transaction, FundCollection } = require('./models');
 
 const app = express();
@@ -48,6 +49,102 @@ const upload = multer({ storage, fileFilter: (req, file, cb) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // API ROUTES
 // ═══════════════════════════════════════════════════════════════════════════════
+
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.MONGODB_URI || 'flc-admin-session-secret';
+const ADMIN_SESSION_MAX_AGE = 1000 * 60 * 60 * 12;
+
+function parseCookies(req) {
+  return String(req.headers.cookie || '').split(';').reduce((cookies, item) => {
+    const index = item.indexOf('=');
+    if (index === -1) return cookies;
+    const key = item.slice(0, index).trim();
+    const value = item.slice(index + 1).trim();
+    if (key) cookies[key] = decodeURIComponent(value);
+    return cookies;
+  }, {});
+}
+
+function signTokenPayload(payload) {
+  return crypto.createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('base64url');
+}
+
+function createAdminToken(username) {
+  const payload = Buffer.from(JSON.stringify({ username, exp: Date.now() + ADMIN_SESSION_MAX_AGE })).toString('base64url');
+  return payload + '.' + signTokenPayload(payload);
+}
+
+function safeCompare(a, b) {
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
+  if (left.length !== right.length) return false;
+  return crypto.timingSafeEqual(left, right);
+}
+
+function verifyAdminToken(token) {
+  if (!token || !token.includes('.')) return null;
+  const parts = token.split('.');
+  const payload = parts[0];
+  const signature = parts[1];
+  const expectedSignature = signTokenPayload(payload);
+  if (!safeCompare(signature, expectedSignature)) return null;
+
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!data.exp || Date.now() > data.exp) return null;
+    if (data.username !== ADMIN_USERNAME) return null;
+    return { username: data.username };
+  } catch (err) {
+    return null;
+  }
+}
+
+function getAdminSession(req) {
+  const cookies = parseCookies(req);
+  const bearer = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  return verifyAdminToken(cookies.flc_admin_session || bearer);
+}
+
+function requireAdmin(req, res, next) {
+  const session = getAdminSession(req);
+  if (!session) return res.status(401).json({ success: false, message: 'Vui lòng đăng nhập admin' });
+  req.admin = session;
+  next();
+}
+
+function clearAdminCookie(res) {
+  res.clearCookie('flc_admin_session', { path: '/', sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+}
+
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body || {};
+  if (!safeCompare(username || '', ADMIN_USERNAME) || !safeCompare(password || '', ADMIN_PASSWORD)) {
+    return res.status(401).json({ success: false, message: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+  }
+
+  res.cookie('flc_admin_session', createAdminToken(ADMIN_USERNAME), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: ADMIN_SESSION_MAX_AGE,
+    path: '/'
+  });
+  res.json({ success: true, data: { username: ADMIN_USERNAME } });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  clearAdminCookie(res);
+  res.json({ success: true });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  const session = getAdminSession(req);
+  if (!session) return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
+  res.json({ success: true, data: session });
+});
+
+app.use('/api', requireAdmin);
 
 function processAvatarUrl(url) {
   if (!url) return '';

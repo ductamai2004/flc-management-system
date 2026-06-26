@@ -2,6 +2,16 @@
 
 const App = {
   _currentPage: 'dashboard',
+  _initialized: false,
+
+  async startAuthenticated() {
+    if (this._initialized) {
+      this.navigate(this._currentPage || 'dashboard');
+      return;
+    }
+    this._initialized = true;
+    this.init();
+  },
 
   init() {
     // Set current date in topbar
@@ -112,4 +122,4 @@ const App = {
 };
 
 // Start the app
-document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', () => Auth.init(() => App.startAuthenticated()));
