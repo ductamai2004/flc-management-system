@@ -327,6 +327,11 @@ const Finance = (() => {
     }
   }
 
+  function exportFinanceReport() {
+    window.open(`/api/export?type=finance&t=${Date.now()}`, '_blank');
+    if (typeof Toast !== 'undefined') Toast.info('Đang xuất báo cáo tài chính Excel...');
+  }
+
   function openTransactionModal() {
     document.getElementById('transactionFormType').value = 'expense';
     document.getElementById('transactionFormCategory').value = 'Khác';
@@ -436,6 +441,8 @@ const Finance = (() => {
     buildMonthOptions();
     const addBtn = document.getElementById('addTransactionBtn');
     if (addBtn) addBtn.addEventListener('click', openTransactionModal);
+    const exportBtn = document.getElementById('exportFinanceBtn');
+    if (exportBtn) exportBtn.addEventListener('click', exportFinanceReport);
     const saveBtn = document.getElementById('saveTransactionBtn');
     if (saveBtn) saveBtn.addEventListener('click', saveTransaction);
     const closeBtn = document.getElementById('closeTransactionModal');
@@ -447,5 +454,5 @@ const Finance = (() => {
     switchTab('transactions');
   }
 
-  return { init, switchTab, loadFunds, collectFund, cancelFund, deleteTransaction, triggerProofUpload, triggerProofLink, viewProof };
+  return { init, switchTab, loadFunds, collectFund, cancelFund, deleteTransaction, triggerProofUpload, triggerProofLink, viewProof, exportFinanceReport };
 })();

@@ -608,6 +608,8 @@ app.get('/api/export', async (req, res) => {
     const members = await Member.find().lean();
     let sessions = await Session.find().lean();
     const attendance = await Attendance.find().lean();
+    const transactions = await Transaction.find().lean();
+    const funds = await FundCollection.find().lean();
     sessions = sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const fmtDate = (d) => {
@@ -657,10 +659,72 @@ app.get('/api/export', async (req, res) => {
       return [headers, ...rows];
     };
 
+    const getFinanceSummaryData = () => {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const totalIncome = transactions.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+      const totalExpense = transactions.filter(tx => tx.type === 'expense').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+      const currentMonthIncome = transactions.filter(tx => tx.type === 'income' && tx.date && tx.date.startsWith(currentMonth)).reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+      const currentMonthExpense = transactions.filter(tx => tx.type === 'expense' && tx.date && tx.date.startsWith(currentMonth)).reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+      return [
+        ['Chỉ số', 'Giá trị'],
+        ['Tồn quỹ hiện tại', totalIncome - totalExpense],
+        ['Tổng thu', totalIncome],
+        ['Tổng chi', totalExpense],
+        ['Tổng thu tháng này', currentMonthIncome],
+        ['Tổng chi tháng này', currentMonthExpense],
+        ['Số giao dịch', transactions.length],
+        ['Số bản ghi nộp quỹ', funds.length]
+      ];
+    };
+
+    const getFinanceTransactionsData = () => {
+      const headers = ['STT', 'Ngày', 'Loại', 'Danh mục', 'Nội dung', 'Số tiền'];
+      const rows = transactions
+        .slice()
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map((tx, idx) => [
+          idx + 1,
+          fmtDate(tx.date),
+          tx.type === 'income' ? 'Thu' : 'Chi',
+          tx.category || '',
+          tx.description || '',
+          Number(tx.amount || 0)
+        ]);
+      return [headers, ...rows];
+    };
+
+    const getFinanceFundsData = () => {
+      const memberMap = new Map(members.map(member => [member.id, member]));
+      const headers = ['STT', 'Tháng', 'Họ và Tên', 'MSSV', 'Lớp', 'Số tiền', 'Có minh chứng', 'Link minh chứng', 'Ngày ghi nhận'];
+      const rows = funds
+        .slice()
+        .sort((a, b) => String(b.month || '').localeCompare(String(a.month || '')) || new Date(b.recordedAt || 0) - new Date(a.recordedAt || 0))
+        .map((fund, idx) => {
+          const member = memberMap.get(fund.memberId) || {};
+          return [
+            idx + 1,
+            fund.month || '',
+            member.name || '',
+            member.mssv || '',
+            member.lop || '',
+            Number(fund.amount || 0),
+            fund.proofImage ? 'Có' : 'Không',
+            fund.proofImage || '',
+            fund.recordedAt ? fmtDate(String(fund.recordedAt).slice(0, 10)) : ''
+          ];
+        });
+      return [headers, ...rows];
+    };
+
     const wb = XLSX.utils.book_new();
     let fileName = '';
 
-    if (type === 'reports') {
+    if (type === 'finance') {
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getFinanceSummaryData()), 'Tong_Quan');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getFinanceTransactionsData()), 'So_Thu_Chi');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getFinanceFundsData()), 'Quy_Thanh_Vien');
+      fileName = 'FLC_Bao_Cao_Tai_Chinh.xlsx';
+    } else if (type === 'reports') {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getAttendanceData()), 'Điểm danh');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getMembersData()), 'Thành viên');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(getSessionsData()), 'Buổi sinh hoạt');
