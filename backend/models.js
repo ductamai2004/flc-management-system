@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+// Account Schema (Admin access)
+const accountSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  username: { type: String, required: true, unique: true, trim: true },
+  name: { type: String, required: true, trim: true },
+  role: { type: String, enum: ['admin', 'chairman', 'vice_chairman'], default: 'vice_chairman' },
+  active: { type: Boolean, default: true },
+  passwordHash: { type: String, required: true },
+  passwordSalt: { type: String, required: true },
+  lastLoginAt: { type: String, default: '' },
+  createdAt: { type: String, default: () => new Date().toISOString() },
+  updatedAt: { type: String, default: () => new Date().toISOString() }
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
 // Member Schema
 const memberSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
@@ -74,10 +90,11 @@ const fundCollectionSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+const Account = mongoose.model('Account', accountSchema);
 const Member = mongoose.model('Member', memberSchema);
 const Session = mongoose.model('Session', sessionSchema);
 const Attendance = mongoose.model('Attendance', attendanceSchema);
 const Transaction = mongoose.model('Transaction', transactionSchema);
 const FundCollection = mongoose.model('FundCollection', fundCollectionSchema);
 
-module.exports = { Member, Session, Attendance, Transaction, FundCollection };
+module.exports = { Account, Member, Session, Attendance, Transaction, FundCollection };

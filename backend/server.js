@@ -9,7 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-const { Member, Session, Attendance, Transaction, FundCollection } = require('./models');
+const { Account, Member, Session, Attendance, Transaction, FundCollection } = require('./models');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -29,7 +29,10 @@ if (!process.env.MONGODB_URI) {
 }
 
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB Atlas'))
+  .then(async () => {
+    console.log('✅ Connected to MongoDB Atlas');
+    await seedDefaultAdminAccount();
+  })
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // ─── Multer for file uploads ──────────────────────────────────────────────────
@@ -54,6 +57,9 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.MONGODB_URI || 'flc-admin-session-secret';
 const ADMIN_SESSION_MAX_AGE = 1000 * 60 * 60 * 12;
+const PASSWORD_ITERATIONS = 100000;
+const ACCOUNT_ROLES = ['admin', 'chairman', 'vice_chairman'];
+const ROLE_LABELS = { admin: 'Quản trị viên', chairman: 'Chủ nhiệm', vice_chairman: 'Phó chủ nhiệm' };
 
 function parseCookies(req) {
   return String(req.headers.cookie || '').split(';').reduce((cookies, item) => {
@@ -70,8 +76,8 @@ function signTokenPayload(payload) {
   return crypto.createHmac('sha256', ADMIN_SESSION_SECRET).update(payload).digest('base64url');
 }
 
-function createAdminToken(username) {
-  const payload = Buffer.from(JSON.stringify({ username, exp: Date.now() + ADMIN_SESSION_MAX_AGE })).toString('base64url');
+function createAdminToken(account) {
+  const payload = Buffer.from(JSON.stringify({ id: account.id, username: account.username, exp: Date.now() + ADMIN_SESSION_MAX_AGE })).toString('base64url');
   return payload + '.' + signTokenPayload(payload);
 }
 
@@ -80,6 +86,32 @@ function safeCompare(a, b) {
   const right = Buffer.from(String(b));
   if (left.length !== right.length) return false;
   return crypto.timingSafeEqual(left, right);
+}
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+  const hash = crypto.pbkdf2Sync(String(password), salt, PASSWORD_ITERATIONS, 64, 'sha512').toString('hex');
+  return { hash, salt };
+}
+
+function verifyPassword(password, account) {
+  if (!account || !account.passwordHash || !account.passwordSalt) return false;
+  const result = hashPassword(password, account.passwordSalt);
+  return safeCompare(result.hash, account.passwordHash);
+}
+
+function sanitizeAccount(account) {
+  if (!account) return null;
+  return {
+    id: account.id,
+    username: account.username,
+    name: account.name,
+    role: account.role,
+    roleLabel: ROLE_LABELS[account.role] || account.role,
+    active: account.active,
+    lastLoginAt: account.lastLoginAt || '',
+    createdAt: account.createdAt || '',
+    updatedAt: account.updatedAt || ''
+  };
 }
 
 function verifyAdminToken(token) {
@@ -93,23 +125,34 @@ function verifyAdminToken(token) {
   try {
     const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
     if (!data.exp || Date.now() > data.exp) return null;
-    if (data.username !== ADMIN_USERNAME) return null;
-    return { username: data.username };
+    if (!data.id) return null;
+    return data;
   } catch (err) {
     return null;
   }
 }
 
-function getAdminSession(req) {
+async function getAdminSession(req) {
   const cookies = parseCookies(req);
   const bearer = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  return verifyAdminToken(cookies.flc_admin_session || bearer);
+  const tokenData = verifyAdminToken(cookies.flc_admin_session || bearer);
+  if (!tokenData) return null;
+
+  const account = await Account.findOne({ id: tokenData.id, active: true }).lean();
+  return sanitizeAccount(account);
 }
 
-function requireAdmin(req, res, next) {
-  const session = getAdminSession(req);
+async function requireAdmin(req, res, next) {
+  const session = await getAdminSession(req);
   if (!session) return res.status(401).json({ success: false, message: 'Vui lòng đăng nhập admin' });
   req.admin = session;
+  next();
+}
+
+function requireSystemAdmin(req, res, next) {
+  if (!req.admin || req.admin.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Bạn không có quyền quản lý tài khoản' });
+  }
   next();
 }
 
@@ -117,20 +160,59 @@ function clearAdminCookie(res) {
   res.clearCookie('flc_admin_session', { path: '/', sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
 }
 
-app.post('/api/auth/login', (req, res) => {
-  const { username, password } = req.body || {};
-  if (!safeCompare(username || '', ADMIN_USERNAME) || !safeCompare(password || '', ADMIN_PASSWORD)) {
-    return res.status(401).json({ success: false, message: 'Tên đăng nhập hoặc mật khẩu không đúng' });
-  }
+async function seedDefaultAdminAccount() {
+  try {
+    const existingAdmin = await Account.findOne({ role: 'admin' }).lean();
+    if (existingAdmin) return;
 
-  res.cookie('flc_admin_session', createAdminToken(ADMIN_USERNAME), {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: ADMIN_SESSION_MAX_AGE,
-    path: '/'
-  });
-  res.json({ success: true, data: { username: ADMIN_USERNAME } });
+    const password = hashPassword(ADMIN_PASSWORD);
+    await Account.create({
+      id: uuidv4(),
+      username: ADMIN_USERNAME,
+      name: 'Admin',
+      role: 'admin',
+      active: true,
+      passwordHash: password.hash,
+      passwordSalt: password.salt
+    });
+    console.log('✅ Seeded default admin account');
+  } catch (err) {
+    console.error('❌ Failed to seed admin account:', err.message);
+  }
+}
+
+function normalizeAccountInput(body) {
+  return {
+    username: String(body.username || '').trim(),
+    name: String(body.name || '').trim(),
+    role: ACCOUNT_ROLES.includes(body.role) ? body.role : 'vice_chairman',
+    active: body.active !== false,
+    password: String(body.password || '')
+  };
+}
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body || {};
+    const account = await Account.findOne({ username: String(username || '').trim() });
+    if (!account || !account.active || !verifyPassword(password || '', account)) {
+      return res.status(401).json({ success: false, message: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+    }
+
+    account.lastLoginAt = new Date().toISOString();
+    await account.save();
+
+    res.cookie('flc_admin_session', createAdminToken(account), {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: ADMIN_SESSION_MAX_AGE,
+      path: '/'
+    });
+    res.json({ success: true, data: sanitizeAccount(account) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 app.post('/api/auth/logout', (req, res) => {
@@ -138,13 +220,127 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/auth/me', (req, res) => {
-  const session = getAdminSession(req);
+app.get('/api/auth/me', async (req, res) => {
+  const session = await getAdminSession(req);
   if (!session) return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
   res.json({ success: true, data: session });
 });
 
 app.use('/api', requireAdmin);
+
+app.put('/api/auth/profile', async (req, res) => {
+  try {
+    const name = String(req.body.name || '').trim();
+    if (!name) return res.status(400).json({ success: false, message: 'Vui lòng nhập họ tên' });
+
+    const account = await Account.findOneAndUpdate(
+      { id: req.admin.id },
+      { name, updatedAt: new Date().toISOString() },
+      { new: true }
+    );
+    res.json({ success: true, data: sanitizeAccount(account) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/auth/change-password', async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (!newPassword || String(newPassword).length < 6) {
+      return res.status(400).json({ success: false, message: 'Mật khẩu mới cần ít nhất 6 ký tự' });
+    }
+
+    const account = await Account.findOne({ id: req.admin.id });
+    if (!account || !verifyPassword(currentPassword || '', account)) {
+      return res.status(400).json({ success: false, message: 'Mật khẩu hiện tại không đúng' });
+    }
+
+    const password = hashPassword(newPassword);
+    account.passwordHash = password.hash;
+    account.passwordSalt = password.salt;
+    account.updatedAt = new Date().toISOString();
+    await account.save();
+    res.json({ success: true, message: 'Đã đổi mật khẩu' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/accounts', requireSystemAdmin, async (req, res) => {
+  try {
+    const accounts = await Account.find().lean();
+    res.json({ success: true, data: accounts.map(sanitizeAccount).sort((a, b) => a.username.localeCompare(b.username)) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/accounts', requireSystemAdmin, async (req, res) => {
+  try {
+    const data = normalizeAccountInput(req.body || {});
+    if (!data.username || !data.name || !data.password) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ tên, tài khoản và mật khẩu' });
+    }
+    if (data.password.length < 6) return res.status(400).json({ success: false, message: 'Mật khẩu cần ít nhất 6 ký tự' });
+    const duplicated = await Account.findOne({ username: data.username }).lean();
+    if (duplicated) return res.status(409).json({ success: false, message: 'Tên đăng nhập đã tồn tại' });
+
+    const password = hashPassword(data.password);
+    const account = await Account.create({
+      id: uuidv4(), username: data.username, name: data.name, role: data.role, active: data.active,
+      passwordHash: password.hash, passwordSalt: password.salt
+    });
+    res.status(201).json({ success: true, data: sanitizeAccount(account) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put('/api/accounts/:id', requireSystemAdmin, async (req, res) => {
+  try {
+    const data = normalizeAccountInput(req.body || {});
+    if (!data.username || !data.name) return res.status(400).json({ success: false, message: 'Vui lòng nhập họ tên và tài khoản' });
+    if (req.params.id === req.admin.id && data.active === false) {
+      return res.status(400).json({ success: false, message: 'Không thể vô hiệu hóa chính tài khoản đang đăng nhập' });
+    }
+
+    const duplicated = await Account.findOne({ username: data.username, id: { $ne: req.params.id } }).lean();
+    if (duplicated) return res.status(409).json({ success: false, message: 'Tên đăng nhập đã tồn tại' });
+
+    const update = { username: data.username, name: data.name, role: data.role, active: data.active, updatedAt: new Date().toISOString() };
+    if (data.password) {
+      if (data.password.length < 6) return res.status(400).json({ success: false, message: 'Mật khẩu cần ít nhất 6 ký tự' });
+      const password = hashPassword(data.password);
+      update.passwordHash = password.hash;
+      update.passwordSalt = password.salt;
+    }
+
+    const account = await Account.findOneAndUpdate({ id: req.params.id }, update, { new: true });
+    if (!account) return res.status(404).json({ success: false, message: 'Không tìm thấy tài khoản' });
+    res.json({ success: true, data: sanitizeAccount(account) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.patch('/api/accounts/:id/status', requireSystemAdmin, async (req, res) => {
+  try {
+    const active = req.body.active === true;
+    if (req.params.id === req.admin.id && !active) {
+      return res.status(400).json({ success: false, message: 'Không thể vô hiệu hóa chính tài khoản đang đăng nhập' });
+    }
+    const account = await Account.findOneAndUpdate(
+      { id: req.params.id },
+      { active, updatedAt: new Date().toISOString() },
+      { new: true }
+    );
+    if (!account) return res.status(404).json({ success: false, message: 'Không tìm thấy tài khoản' });
+    res.json({ success: true, data: sanitizeAccount(account) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 function processAvatarUrl(url) {
   if (!url) return '';

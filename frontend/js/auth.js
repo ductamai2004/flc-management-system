@@ -1,13 +1,19 @@
 const Auth = {
   admin: null,
 
+  setAdmin(account) {
+    this.admin = account || null;
+    const nameEl = document.getElementById('topbarAdminName');
+    if (nameEl) nameEl.textContent = this.admin ? this.admin.name : 'Admin';
+  },
+
   async init(onAuthenticated) {
     this.bindEvents(onAuthenticated);
     try {
       const res = await fetch('/api/auth/me');
       if (!res.ok) throw new Error('Unauthenticated');
       const json = await res.json();
-      this.admin = json.data;
+      this.setAdmin(json.data);
       this.showApp();
       await onAuthenticated();
     } catch (err) {
@@ -60,7 +66,7 @@ const Auth = {
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.success) throw new Error(json.message || 'Đăng nhập thất bại');
 
-      this.admin = json.data;
+      this.setAdmin(json.data);
       passwordInput.value = '';
       this.showApp();
       await onAuthenticated();
@@ -75,7 +81,7 @@ const Auth = {
 
   async logout() {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => null);
-    this.admin = null;
+    this.setAdmin(null);
     this.showLogin();
     if (typeof Toast !== 'undefined') Toast.info('Đã đăng xuất');
   }

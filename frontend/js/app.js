@@ -78,7 +78,8 @@ const App = {
       members: 'Thành viên',
       sessions: 'Buổi sinh hoạt',
       reports: 'Báo cáo',
-      finance: 'Quản lý Tài chính'
+      finance: 'Quản lý Tài chính',
+      accounts: 'Tài khoản'
     };
     document.getElementById('topbarTitle').textContent = titles[page] || page;
 
@@ -116,6 +117,9 @@ const App = {
         break;
       case 'finance':
         Finance.init();
+        break;
+      case 'accounts':
+        Accounts.init();
         break;
     }
   }
