@@ -32,6 +32,28 @@ const Finance = (() => {
     return `${y}-${m}`;
   }
 
+  function escapeAttr(value) {
+    return String(value || '').replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+  }
+
+  function normalizeProofUrl(value) {
+    const rawUrl = String(value || '').trim();
+    if (!rawUrl) return '';
+    try {
+      const url = new URL(rawUrl);
+      if (!['http:', 'https:'].includes(url.protocol)) return '';
+      return url.href;
+    } catch (e) {
+      return '';
+    }
+  }
+
   function buildMonthOptions() {
     const select = document.getElementById('fundMonthSelect');
     if (!select) return;
@@ -154,12 +176,16 @@ const Finance = (() => {
       if (isPaid && fundRecord) {
         if (fundRecord.proofImage) {
           proofCell = `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-            <img src="${fundRecord.proofImage}" alt="Minh chứng" style="width:52px;height:52px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid rgb(99,102,241)" onclick="Finance.viewProof('${fundRecord.id}')" />
-            <button class="btn btn-ghost btn-sm" onclick="Finance.triggerProofUpload('${fundRecord.id}')" style="padding:2px 8px;font-size:11px">&#128247; Thăm</button>
+            <img src="${escapeAttr(fundRecord.proofImage)}" alt="Minh chứng" style="width:52px;height:52px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid rgb(99,102,241)" onclick="Finance.viewProof('${fundRecord.id}')" />
+            <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center">
+              <button class="btn btn-ghost btn-sm" onclick="Finance.triggerProofUpload('${fundRecord.id}')" style="padding:2px 8px;font-size:11px">&#128247; Upload</button>
+              <button class="btn btn-ghost btn-sm" onclick="Finance.triggerProofLink('${fundRecord.id}')" style="padding:2px 8px;font-size:11px">&#128279; Link</button>
+            </div>
           </div>`;
         } else {
-          proofCell = `<div style="display:flex;justify-content:center">
+          proofCell = `<div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap">
             <button class="btn btn-ghost btn-sm" onclick="Finance.triggerProofUpload('${fundRecord.id}')" style="padding:4px 10px;font-size:12px;border:1px dashed var(--border-color)">&#128247; Upload</button>
+            <button class="btn btn-ghost btn-sm" onclick="Finance.triggerProofLink('${fundRecord.id}')" style="padding:4px 10px;font-size:12px;border:1px dashed var(--border-color)">&#128279; D&aacute;n link</button>
           </div>`;
         }
       } else {
@@ -338,6 +364,34 @@ const Finance = (() => {
     reader.readAsDataURL(file);
   }
 
+  async function triggerProofLink(fundId) {
+    const link = prompt('D\u00e1n link \u1ea3nh minh ch\u1ee9ng tr\u1ef1c ti\u1ebfp:');
+    if (link === null) return;
+
+    const proofUrl = normalizeProofUrl(link);
+    if (!proofUrl) {
+      if (typeof showToast === 'function') showToast('Vui l\u00f2ng d\u00e1n link \u1ea3nh h\u1ee3p l\u1ec7 b\u1eaft \u0111\u1ea7u b\u1eb1ng http:// ho\u1eb7c https://', 'warning');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/finance/funds/${fundId}/proof`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proofImage: proofUrl })
+      });
+      const json = await res.json();
+      if (json.success) {
+        if (typeof showToast === 'function') showToast('\u0110\u00e3 l\u01b0u link \u1ea3nh minh ch\u1ee9ng!', 'success');
+        await loadFunds();
+      } else {
+        if (typeof showToast === 'function') showToast(json.message || 'L\u1ed7i l\u01b0u \u1ea3nh', 'error');
+      }
+    } catch (err) {
+      if (typeof showToast === 'function') showToast('L\u1ed7i k\u1ebft n\u1ed1i', 'error');
+    }
+  }
+
   function viewProof(fundId) {
     const record = _funds.find(f => f.id === fundId);
     if (!record || !record.proofImage) return;
@@ -373,5 +427,5 @@ const Finance = (() => {
     switchTab('transactions');
   }
 
-  return { init, switchTab, loadFunds, collectFund, cancelFund, deleteTransaction, triggerProofUpload, viewProof };
+  return { init, switchTab, loadFunds, collectFund, cancelFund, deleteTransaction, triggerProofUpload, triggerProofLink, viewProof };
 })();
