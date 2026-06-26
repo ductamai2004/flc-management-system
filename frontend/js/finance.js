@@ -48,10 +48,30 @@ const Finance = (() => {
     try {
       const url = new URL(rawUrl);
       if (!['http:', 'https:'].includes(url.protocol)) return '';
+      const driveId = getGoogleDriveFileId(url);
+      if (driveId) return `https://lh3.googleusercontent.com/d/${driveId}`;
       return url.href;
     } catch (e) {
       return '';
     }
+  }
+
+  function getGoogleDriveFileId(url) {
+    const host = url.hostname.toLowerCase();
+    if (host === 'drive.google.com' || host.endsWith('.drive.google.com')) {
+      const fileMatch = url.pathname.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (fileMatch && fileMatch[1]) return fileMatch[1];
+
+      const id = url.searchParams.get('id');
+      if (id && /^[a-zA-Z0-9_-]+$/.test(id)) return id;
+    }
+
+    if (host === 'drive.usercontent.google.com') {
+      const id = url.searchParams.get('id');
+      if (id && /^[a-zA-Z0-9_-]+$/.test(id)) return id;
+    }
+
+    return '';
   }
 
   function buildMonthOptions() {
