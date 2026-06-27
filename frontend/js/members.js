@@ -260,40 +260,40 @@ const Members = {
 
     const cardHtml = `
       <div id="printCardOuter" style="display:inline-block; padding: 4px; background: rgb(255,255,255);">
-        <div id="printCardWrapper" style="width: 297px; height: 419px; box-sizing: border-box; border-radius: 12px; background: rgb(255, 255, 255); border: 2px solid rgb(226, 232, 240); display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; position: relative;">
+        <div id="printCardWrapper" style="width: 297px; height: 500px; box-sizing: border-box; border-radius: 12px; background: rgb(255, 255, 255); border: 2px solid rgb(226, 232, 240); display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; position: relative; overflow: hidden;">
           
           <!-- Header -->
-          <div style="background: rgb(99, 102, 241); height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgb(255, 255, 255); border-top-left-radius: 10px; border-top-right-radius: 10px;">
-            <div style="font-size: 10px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.9; margin-bottom: 2px;">CLB TIẾNG ANH VKU</div>
-            <div style="margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.5px;">VKU FOREIGN LANGUAGE CLUB</div>
-            <div style="font-size: 11px; opacity: 0.9; margin-top: 4px;">Thẻ thành viên</div>
+          <div style="background: rgb(99, 102, 241); height: 80px; flex-shrink:0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgb(255, 255, 255); border-top-left-radius: 10px; border-top-right-radius: 10px;">
+            <div style="font-size: 9px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.9; margin-bottom: 2px;">CLB TIẾNG ANH VKU</div>
+            <div style="margin: 0; font-size: 14px; font-weight: 900; letter-spacing: 0.5px;">VKU FOREIGN LANGUAGE CLUB</div>
+            <div style="font-size: 10px; opacity: 0.9; margin-top: 3px;">Thẻ thành viên</div>
           </div>
           
           <!-- Body -->
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px; background: rgb(255, 255, 255);">
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 12px; background: rgb(255, 255, 255); overflow: hidden;">
             <!-- Avatar -->
             ${member.avatar ? 
-              `<img src="${member.avatar}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; margin-top: 8px; margin-bottom: 10px; border: 4px solid rgb(99, 102, 241); box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />` : 
-              `<div style="width: 140px; height: 140px; border-radius: 50%; background: rgb(237, 233, 254); color: rgb(99, 102, 241); display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; margin-top: 8px; margin-bottom: 10px; border: 4px solid rgb(99, 102, 241); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+              `<img src="${member.avatar}" style="width: 130px; height: 130px; border-radius: 50%; object-fit: cover; margin-top: 6px; margin-bottom: 8px; border: 4px solid rgb(99, 102, 241); box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink:0;" />` : 
+              `<div style="width: 130px; height: 130px; flex-shrink:0; border-radius: 50%; background: rgb(237, 233, 254); color: rgb(99, 102, 241); display: flex; align-items: center; justify-content: center; font-size: 44px; font-weight: 800; margin-top: 6px; margin-bottom: 8px; border: 4px solid rgb(99, 102, 241); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 ${getInitials(member.name)}
               </div>`
             }
             
-            <div style="font-size: 16px; font-weight: 800; color: rgb(30, 41, 59); text-align: center; margin-bottom: 4px;">${member.name}</div>
-            <div style="display: inline-block; font-size: 11px; color: rgb(255, 255, 255); font-weight: 700; background: rgb(99, 102, 241); padding: 3px 12px; border-radius: 12px; margin-bottom: 12px;">${roleLabel}</div>
+            <div style="font-size: 15px; font-weight: 800; color: rgb(30, 41, 59); text-align: center; margin-bottom: 4px; line-height: 1.2;">${member.name}</div>
+            <div style="display: inline-block; font-size: 10px; color: rgb(255, 255, 255); font-weight: 700; background: rgb(99, 102, 241); padding: 2px 10px; border-radius: 12px; margin-bottom: 8px;">${roleLabel}</div>
             
-            <div style="width: 90%; font-size: 12px; color: rgb(71, 85, 105); border-top: 1px solid rgb(241, 245, 249); padding-top: 10px; display: flex; flex-direction: column; gap: 4px;">
+            <div style="width: 90%; font-size: 11px; color: rgb(71, 85, 105); border-top: 1px solid rgb(241, 245, 249); padding-top: 6px; display: flex; flex-direction: column; gap: 3px; margin-bottom: 6px;">
               ${member.mssv ? '<div style="display:flex;justify-content:space-between;"><span>MSSV</span><strong style="color:#1e293b;">' + member.mssv + '</strong></div>' : ''}
               ${member.lop ? '<div style="display:flex;justify-content:space-between;"><span>Lớp</span><strong style="color:#1e293b;">' + member.lop + '</strong></div>' : ''}
             </div>
             
-            <div style="margin-top: auto; padding: 6px; background: rgb(248, 249, 250); border-radius: 8px; border: 1px solid rgb(226, 232, 240); display: flex; justify-content: center;" id="qrcode-${member.id}"></div>
-            <div style="margin-top: 4px; font-size: 10px; color: rgb(148, 163, 184); text-align: center;">Quét QR để điểm danh</div>
+            <div style="padding: 4px; background: rgb(248, 249, 250); border-radius: 8px; border: 1px solid rgb(226, 232, 240); display: flex; justify-content: center;" id="qrcode-${member.id}"></div>
+            <div style="margin-top: 3px; font-size: 9px; color: rgb(148, 163, 184); text-align: center;">Quét QR để điểm danh</div>
           </div>
           
           <!-- Footer -->
-          <div style="background: rgb(248, 250, 252); height: 28px; display: flex; align-items: center; justify-content: center; border-top: 1px solid rgb(241, 245, 249); border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
-            <div style="font-size: 9px; color: rgb(148, 163, 184);">ĐH Công nghệ TT &amp; TT Việt - Hàn (VKU)</div>
+          <div style="background: rgb(248, 250, 252); height: 24px; flex-shrink:0; display: flex; align-items: center; justify-content: center; border-top: 1px solid rgb(241, 245, 249); border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+            <div style="font-size: 8px; color: rgb(148, 163, 184);">ĐH Công nghệ TT &amp; TT Việt - Hàn (VKU)</div>
           </div>
         </div>
       </div>
@@ -320,10 +320,10 @@ const Members = {
     if (!this._currentPrintMember) return;
     const element = document.getElementById('printCardOuter');
     
-    const btn = document.getElementById('printMemberCardBtn');
-    const originalText = btn.innerHTML;
+    const btn = document.getElementById('downloadCardPdfBtn');
+    const originalHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = 'Đang tải PDF...';
+    btn.innerHTML = 'Đang tạo PDF...';
 
     const safeName = this._currentPrintMember.name.replace(/[^a-zA-Z0-9]/g, '_');
     
@@ -331,17 +331,16 @@ const Members = {
       margin:       0,
       filename:     `The_Thanh_Vien_${safeName}.pdf`,
       image:        { type: 'jpeg', quality: 1 },
-      html2canvas:  { scale: 4, useCORS: true, logging: false },
+      html2canvas:  { scale: 4, useCORS: true, logging: false, allowTaint: true },
       jsPDF:        { unit: 'mm', format: 'a6', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
-      btn.innerHTML = originalText;
+      btn.innerHTML = originalHtml;
       btn.disabled = false;
-      closeModal('memberCardModal');
       Toast.success('Đã tải xuống thẻ thành viên PDF');
     }).catch(err => {
-      btn.innerHTML = originalText;
+      btn.innerHTML = originalHtml;
       btn.disabled = false;
       Toast.error('Lỗi khi tạo PDF: ' + err.message);
     });
